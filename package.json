@@ -3,6 +3,8 @@
   "version": "1.4.1",
   "description": "Herramienta QA para Xstore y Xray",
   "main": "main.js",
+  "author": "Efrain Cortez",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "start": "electron .",
@@ -19,6 +21,7 @@
       "preload.js",
       "github-updates.js",
       "csv-importer.js",
+      "LICENSE",
       "package.json"
     ],
     "win": {

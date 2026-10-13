@@ -206,3 +206,12 @@ No guardes ni incluyas tokens de GitHub en el código, el ejecutable, el README 
 - La importación a Jira/Xray sigue siendo manual.
 - La consulta de Releases está implementada para el endpoint público del repositorio indicado; no funciona con Releases privados sin un mecanismo de autenticación adicional.
 - No hay sincronización directa con Jira/Xray ni administración automática de carpetas del Test Repository.
+
+## Licencia
+
+Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más información.
+
+## Reconocimiento de Asistencia de IA
+
+Este proyecto fue conceptualizado, diseñado, desarrollado y probado bajo la dirección y autoría de **Efrain Cortez**, contando con el apoyo y asistencia técnica de modelos de **Inteligencia Artificial (IA)** para pair-programming, diseño de interfaz (Aero Glass UI), optimización de rendimiento en el DOM, estructuración de pruebas unitarias y generación de documentación técnica.
+
