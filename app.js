@@ -337,6 +337,111 @@ async function importarWorkspace(event) {
     event.target.value = ''; // Reset input
 }
 
+async function importarCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const contenido = e.target.result;
+            const parseFn = (window.csvImporter && window.csvImporter.parseXrayCsv) || (typeof parseXrayCsv === 'function' ? parseXrayCsv : null);
+            if (!parseFn) {
+                return await alertUI("El módulo de importación CSV no está disponible.");
+            }
+
+            const resultado = parseFn(contenido);
+            const { casos, ticket, tags, totalPasos } = resultado;
+
+            if (!casos || casos.length === 0) {
+                return await alertUI("No se encontraron casos de prueba válidos en el archivo CSV.");
+            }
+
+            if (casosGlobales.length > 0) {
+                const modalWrap = document.createElement('div');
+
+                const tituloModal = document.createElement('h3');
+                tituloModal.textContent = 'Importar Casos desde CSV';
+                tituloModal.style.marginTop = '0';
+                tituloModal.style.color = '#176da5';
+
+                const descModal = document.createElement('p');
+                descModal.innerHTML = `Se detectaron <strong>${casos.length} casos</strong> con un total de <strong>${totalPasos} pasos</strong>.<br>Actualmente tienes <strong>${casosGlobales.length} casos</strong> en tu espacio de trabajo.`;
+
+                const preguntaModal = document.createElement('p');
+                preguntaModal.textContent = '¿Cómo deseas incorporar estos casos?';
+
+                const botonesWrap = document.createElement('div');
+                botonesWrap.style.display = 'flex';
+                botonesWrap.style.flexDirection = 'column';
+                botonesWrap.style.gap = '8px';
+                botonesWrap.style.marginTop = '15px';
+
+                const btnAnadir = document.createElement('button');
+                btnAnadir.className = 'primary';
+                btnAnadir.style.justifyContent = 'center';
+                btnAnadir.textContent = `Añadir al final (+${casos.length} casos)`;
+
+                const btnReemplazar = document.createElement('button');
+                btnReemplazar.className = 'btn-danger';
+                btnReemplazar.style.justifyContent = 'center';
+                btnReemplazar.textContent = `Reemplazar todo (${casos.length} casos)`;
+
+                botonesWrap.append(btnAnadir, btnReemplazar);
+                modalWrap.append(tituloModal, descModal, preguntaModal, botonesWrap);
+
+                const eleccion = await new Promise((resolve) => {
+                    const modal = document.getElementById('customModal');
+                    const msgEl = document.getElementById('modalMessage');
+                    const btnCancel = document.getElementById('modalCancel');
+                    const btnConfirm = document.getElementById('modalConfirm');
+
+                    msgEl.replaceChildren(modalWrap);
+                    modal.classList.add('active');
+                    btnCancel.style.display = 'inline-block';
+                    btnCancel.textContent = 'Cancelar';
+                    btnConfirm.style.display = 'none';
+
+                    const limpiar = () => {
+                        modal.classList.remove('active');
+                        btnConfirm.style.display = 'inline-block';
+                        btnCancel.onclick = null;
+                        btnAnadir.onclick = null;
+                        btnReemplazar.onclick = null;
+                    };
+
+                    btnAnadir.onclick = () => { limpiar(); resolve('anadir'); };
+                    btnReemplazar.onclick = () => { limpiar(); resolve('reemplazar'); };
+                    btnCancel.onclick = () => { limpiar(); resolve('cancelar'); };
+                });
+
+                if (eleccion === 'cancelar') return;
+
+                if (eleccion === 'anadir') {
+                    casosGlobales = [...casosGlobales, ...casos];
+                } else if (eleccion === 'reemplazar') {
+                    casosGlobales = casos;
+                    if (ticket) document.getElementById('globalTicket').value = ticket;
+                    if (tags) document.getElementById('globalEtiquetas').value = tags;
+                }
+            } else {
+                casosGlobales = casos;
+                if (ticket) document.getElementById('globalTicket').value = ticket;
+                if (tags) document.getElementById('globalEtiquetas').value = tags;
+            }
+
+            guardarLocal(true);
+            renderizarCasos();
+            mostrarToast(`Se importaron ${casos.length} casos (${totalPasos} pasos) con éxito.`);
+        } catch (error) {
+            console.error("Error al importar CSV:", error);
+            await alertUI(`Ocurrió un error al procesar el archivo CSV: ${error.message}`);
+        }
+    };
+    reader.readAsText(file, 'UTF-8');
+    event.target.value = '';
+}
+
 // 2. Buscar y Reemplazar Dinámico
 async function reemplazarMasivo() {
     const buscar = document.getElementById("buscarTxt").value;

@@ -44,6 +44,7 @@ Los estados se guardan en la sesión local y en los archivos de sesión `.qa`; n
 - La aplicación guarda automáticamente los casos, el ticket y las etiquetas en el almacenamiento local del perfil donde se ejecuta.
 - **Exportar Sesión (.qa)** descarga un archivo JSON con los casos y la configuración para conservar o transferir el trabajo.
 - **Importar Sesión** permite recuperar un archivo `.qa` o `.json`.
+- **Importar CSV Xray (.csv)** permite leer un archivo CSV generado para Xray y reconstruir automáticamente sus casos y pasos de prueba, con la opción de agregarlos a los existentes o reemplazar el espacio de trabajo.
 - La sesión es independiente de Jira y no se envía a un servidor.
 
 El almacenamiento local del navegador o de Electron no equivale a una copia de seguridad. Exporta sesiones `.qa` si necesitas conservarlas o compartirlas.
@@ -133,7 +134,9 @@ La aplicación usa Electron, HTML, CSS y JavaScript sin framework de interfaz:
 | `main.js` | Proceso principal de Electron; crea la ventana y gestiona las solicitudes IPC del actualizador. |
 | `preload.js` | Expone al renderer solo las funciones IPC necesarias para consultar la versión, revisar Releases y abrir su página. |
 | `github-updates.js` | Cliente de la API de Releases, comparación SemVer y validación del enlace. |
+| `csv-importer.js` | Parser RFC 4180 y reconstructor de casos y pasos desde archivos CSV de Xray. |
 | `tests/github-updates.test.js` | Pruebas de comparación de versiones, validación de enlaces y respuestas de Releases. |
+| `tests/csv-importer.test.js` | Pruebas unitarias de parseo CSV RFC 4180 y reconstrucción de casos y pasos de Xray. |
 | `.github/workflows/release.yml` | Workflow para compilar el ejecutable portable y crear un Release a partir de una etiqueta de versión. |
 
 La ventana se configura con `contextIsolation` y `sandbox` habilitados y `nodeIntegration` deshabilitado. El renderer no recibe acceso directo a los módulos de Node/Electron; el preload expone un puente específico para actualizaciones.

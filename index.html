@@ -86,6 +86,10 @@
                 <svg class="ui-icon" aria-hidden="true"><use href="#icon-import"></use></svg>Importar Sesión
                 <input type="file" id="fileImport" accept=".qa,.json" onchange="importarWorkspace(event)">
             </label>
+            <label class="btn-file" style="margin-top: 6px;">
+                <svg class="ui-icon" aria-hidden="true"><use href="#icon-import"></use></svg>Importar CSV Xray (.csv)
+                <input type="file" id="fileCsvImport" accept=".csv,text/csv" onchange="importarCSV(event)">
+            </label>
         </div>
 
         <div class="tool-section">
@@ -181,6 +185,7 @@
 
 <div class="toast" id="toastMsg">Acción completada</div>
 
+<script src="csv-importer.js"></script>
 <script src="app.js"></script>
 <!-- MODAL PERSONALIZADO PARA ALERTAS Y CONFIRMACIONES -->
 <div class="modal-overlay" id="customModal">
