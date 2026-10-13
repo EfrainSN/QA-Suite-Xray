@@ -58,7 +58,8 @@ button.btn-danger:hover { background: #ffbdad; }
 .drag-handle { cursor: grab; color: #b3bac5; font-size: 16px; padding: 0 5px; }
 .drag-handle:active { cursor: grabbing; }
 
-/* Semáforos de Estado */
+/* Semáforos de Estado y Contador de Pasos */
+.case-steps-badge { padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; color: #214d70; background: #e4f0fa; border: 1px solid #c2dbed; white-space: nowrap; user-select: none; }
 .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; cursor: pointer; user-select: none; border: 1px solid transparent;}
 .status-pending { background: #ffebe6; color: #bf2600; border-color: #ffbdad;}
 .status-editing { background: #fffae6; color: #ff8b00; border-color: #ffe380;}
@@ -711,6 +712,24 @@ input[type="checkbox"] {
 .csv-validation-error { color: #a8342b; }
 .csv-validation-warning { color: #8b650d; }
 .csv-validation-success { color: #27643c; }
+.csv-info-callout {
+    margin: 8px 0 10px;
+    padding: 10px 12px;
+    border: 1px solid #9dc8e7;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #f0f8ff 0%, #e3f2fd 100%);
+    color: #124d78;
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+.csv-info-callout strong { color: #0b4572; }
+.csv-info-callout code {
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(18, 77, 120, 0.12);
+    font-family: monospace;
+    font-size: 11px;
+}
 .csv-preview-note { font-weight: 600; }
 
 .csv-preview-table-wrap {
@@ -737,6 +756,10 @@ input[type="checkbox"] {
     vertical-align: top;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
+}
+
+.csv-preview-table-wrap tr.csv-row-new-case td {
+    border-top: 2px solid #8cb7d6;
 }
 
 .csv-preview-table-wrap th {

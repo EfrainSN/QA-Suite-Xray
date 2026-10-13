@@ -218,6 +218,8 @@ function renderizarCasos() {
         const esSeleccionado = caso.selected ? 'checked' : '';
         const claseSeleccionado = caso.selected ? 'selected' : '';
         const estadoActual = ESTADOS[caso.status || 'pending'];
+        const totalPasos = Array.isArray(caso.pasos) ? caso.pasos.length : 0;
+        const textoPasos = totalPasos === 1 ? '1 paso' : `${totalPasos} pasos`;
 
         const htmlCaso = `
             <div class="case-item ${claseSeleccionado}" id="case-item-${cIndex}" draggable="true" ondragstart="dragCasoStart(event, ${cIndex})" ondragover="dragOverCaso(event, ${cIndex})" ondrop="dropCaso(event, ${cIndex})" ondragleave="dragLeaveCaso(event, ${cIndex})">
@@ -227,6 +229,7 @@ function renderizarCasos() {
                         <input type="checkbox" id="check-${cIndex}" ${esSeleccionado} onclick="event.stopPropagation(); alternarSeleccionCaso(${cIndex}, this)">
                         <span style="color: #5e6c84; font-family: monospace;">CP-${tcidNum}</span> 
                         <span class="editable" style="display:inline; flex:1;" contenteditable="true" onclick="event.stopPropagation()" onblur="actualizarCaso(${cIndex}, 'titulo', this)">${escaparHTML(caso.titulo)}</span>
+                        <span class="case-steps-badge" title="Cantidad de pasos de prueba en este caso">${textoPasos}</span>
                         <span class="status-badge ${estadoActual.clase}" onclick="event.stopPropagation(); ciclarEstado(${cIndex})" title="Haz clic para cambiar el estado"><svg class="ui-icon" aria-hidden="true"><use href="#${estadoActual.icono}"></use></svg>${estadoActual.texto}</span>
                     </div>
                     <div style="display:flex; gap:5px;" onclick="event.stopPropagation()">
@@ -615,8 +618,13 @@ function mostrarVistaPreviaCSV({ csvContent, nombreArchivo, casosCount, columnas
     contenido.append(titulo);
 
     const resumen = document.createElement('p');
-    resumen.textContent = `${casosCount} casos · ${filasPreview.length} filas de datos · ${erroresValidacion.length} errores · ${advertenciasValidacion.length} advertencias`;
+    resumen.textContent = `${casosCount} casos · ${filasPreview.length} filas en CSV (1 fila por cada paso de prueba) · ${erroresValidacion.length} errores · ${advertenciasValidacion.length} advertencias`;
     contenido.append(resumen);
+
+    const explicacion = document.createElement('div');
+    explicacion.className = 'csv-info-callout';
+    explicacion.innerHTML = `<strong>💡 ¿Por qué hay ${filasPreview.length} filas para ${casosCount} casos?</strong><br>En el formato oficial de <strong>Jira Xray</strong>, cada fila del archivo CSV representa <strong>1 paso de prueba</strong>. Los casos con varios pasos repiten su <code>TCID</code> y <code>Resumen</code> para que Jira los agrupe dentro del <strong>mismo ticket de prueba</strong> sin duplicar incidencias.`;
+    contenido.append(explicacion);
 
     const listaValidacion = document.createElement('ul');
     listaValidacion.className = 'csv-validation-list';
@@ -659,8 +667,13 @@ function mostrarVistaPreviaCSV({ csvContent, nombreArchivo, casosCount, columnas
     tabla.append(encabezado);
 
     const cuerpo = document.createElement('tbody');
+    let tcidAnterior = null;
     filasPreview.forEach(fila => {
         const tr = document.createElement('tr');
+        if (tcidAnterior !== null && fila.tcid !== tcidAnterior) {
+            tr.classList.add('csv-row-new-case');
+        }
+        tcidAnterior = fila.tcid;
         [
             fila.tcid, fila.resumen, fila.descripcion, fila.tipoTest, fila.accion,
             fila.datosPrueba, fila.resultado, fila.componentes, fila.etiquetas, fila.enlaceHU
