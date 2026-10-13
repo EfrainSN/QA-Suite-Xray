@@ -1,0 +1,31 @@
+{
+  "name": "qa-suite-xray",
+  "version": "1.1.0",
+  "description": "Herramienta QA para Xstore y Xray",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.qasuite.xray",
+    "productName": "QA Suite Xray",
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "main.js",
+      "preload.js",
+      "github-updates.js",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  }
+}

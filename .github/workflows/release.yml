@@ -1,0 +1,52 @@
+name: Build portable release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify release tag matches package version
+        shell: pwsh
+        run: |
+          $tagVersion = $env:GITHUB_REF_NAME.TrimStart('v')
+          $packageVersion = node -p "require('./package.json').version"
+          if ($tagVersion -ne $packageVersion) {
+            throw "Release tag $tagVersion does not match package.json version $packageVersion."
+          }
+
+      - name: Build portable executable
+        run: npm run build
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $asset = "dist/QA Suite Xray $version.exe"
+          if (-not (Test-Path -LiteralPath $asset)) {
+            throw "Portable executable not found: $asset"
+          }
+          gh release create $env:GITHUB_REF_NAME $asset `
+            --repo $env:GITHUB_REPOSITORY `
+            --title "QA Suite Xray $env:GITHUB_REF_NAME" `
+            --generate-notes

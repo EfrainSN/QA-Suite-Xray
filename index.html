@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suite QA Xray - Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg class="icon-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-session" viewBox="0 0 24 24">
+        <path d="M5 3.75h10l4 4v12.5H5z" />
+        <path d="M15 3.75v4h4M8 12h8M8 15h8" />
+        <path d="M8 19v-2h8v2" />
+    </symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24">
+        <circle cx="10.8" cy="10.8" r="6.6" />
+        <path d="m15.7 15.7 4.6 4.6" />
+    </symbol>
+    <symbol id="icon-library" viewBox="0 0 24 24">
+        <path d="M4 5.5c3.2-.8 6-.3 8 1.2v13c-2-1.5-4.8-2-8-1.2z" />
+        <path d="M20 5.5c-3.2-.8-6-.3-8 1.2v13c2-1.5 4.8-2 8-1.2zM7 9h2M7 12h2m6-3h2m-2 3h2" />
+    </symbol>
+    <symbol id="icon-export" viewBox="0 0 24 24">
+        <path d="M5 3.75h10l4 4v12.5H5zM15 3.75v4h4" />
+        <path d="M12 17V10m-3 3 3-3 3 3" />
+    </symbol>
+    <symbol id="icon-import" viewBox="0 0 24 24">
+        <path d="M3.5 7.5h7l2 2h8v9.75H3.5z" />
+        <path d="M12 10v7m-3-3 3 3 3-3" />
+    </symbol>
+    <symbol id="icon-paste" viewBox="0 0 24 24">
+        <path d="M8 5H5v16h14V5h-3M9 3h6v4H9zM9 12h6m-6 3h6" />
+    </symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24">
+        <path d="M8 8V4h12v14h-4M4 8h12v12H4z" />
+        <path d="M7 12h6m-6 3h6" />
+    </symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24">
+        <path d="M4.5 7h15M9 7V4.5h6V7m3 0-.8 13h-10L6.5 7m3 3v7m5-7v7" />
+    </symbol>
+    <symbol id="icon-grip" viewBox="0 0 24 24">
+        <circle cx="8" cy="6" r="1" /><circle cx="16" cy="6" r="1" />
+        <circle cx="8" cy="12" r="1" /><circle cx="16" cy="12" r="1" />
+        <circle cx="8" cy="18" r="1" /><circle cx="16" cy="18" r="1" />
+    </symbol>
+    <symbol id="icon-add" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+    </symbol>
+    <symbol id="icon-status-pending" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" />
+    </symbol>
+    <symbol id="icon-status-editing" viewBox="0 0 24 24">
+        <path d="m4 17-.8 4 4-.8L19 8.4 15.6 5zM13.8 6.8l3.4 3.4" />
+    </symbol>
+    <symbol id="icon-status-ready" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" /><path d="m7.5 12.2 3 3 6-6.4" />
+    </symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24">
+        <path d="m6 6 12 12M18 6 6 18" />
+    </symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.7 9a2.4 2.4 0 1 1 4.1 1.7c-1.1 1-1.8 1.4-1.8 3M12 17.2v.1" />
+    </symbol>
+    <symbol id="icon-guide" viewBox="0 0 24 24">
+        <path d="M4 5.5c3.2-.8 6-.3 8 1.2v13c-2-1.5-4.8-2-8-1.2z" />
+        <path d="M20 5.5c-3.2-.8-6-.3-8 1.2v13c2-1.5 4.8-2 8-1.2zM7 9h2m-2 3h2m6-3h2m-2 3h2" />
+    </symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24">
+        <path d="M20 7v5h-5M4 17v-5h5" />
+        <path d="M6.1 9a7 7 0 0 1 11.7-2L20 12M4 12l2.2 5a7 7 0 0 0 11.7-2" />
+    </symbol>
+</svg>
+
+<div class="layout">
+    <!-- BARRA LATERAL (HERRAMIENTAS AVANZADAS) -->
+    <aside class="sidebar">
+        <h2><span class="vista-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Herramientas Pro</h2>
+        
+        <div class="tool-section">
+            <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-session"></use></svg>Sesión de Trabajo<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Guarda una copia local de tus casos o recupera una sesión exportada." data-help="Guarda una copia local de tus casos o recupera una sesión exportada."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
+            <button onclick="exportarWorkspace()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-export"></use></svg>Exportar Sesión (.qa)</button>
+            <label class="btn-file">
+                <svg class="ui-icon" aria-hidden="true"><use href="#icon-import"></use></svg>Importar Sesión
+                <input type="file" id="fileImport" accept=".qa,.json" onchange="importarWorkspace(event)">
+            </label>
+        </div>
+
+        <div class="tool-section">
+            <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-search"></use></svg>Buscar y Reemplazar<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Busca un texto y cámbialo en los casos que selecciones." data-help="Busca un texto y cámbialo en los casos que selecciones."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
+            <input type="text" id="buscarTxt" placeholder="Buscar (ej. FCF)">
+            <input type="text" id="reemplazarTxt" placeholder="Reemplazar (ej. CCF)">
+            <button class="primary" onclick="reemplazarMasivo()">Aplicar a Seleccionados</button>
+        </div>
+
+        <div class="tool-section">
+            <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-library"></use></svg>Librería de Snippets<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Añade pasos predefinidos a todos los casos seleccionados." data-help="Añade pasos predefinidos a todos los casos seleccionados."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
+            <p class="help-text">Aplica secuencias comunes a los casos seleccionados.</p>
+            <button class="snippet-btn" onclick="inyectarSnippet('login')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Login y Apertura POS</button>
+            <button class="snippet-btn" onclick="inyectarSnippet('pago_tarjeta')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Cobro Tarjeta Crédito</button>
+            <button class="snippet-btn" onclick="inyectarSnippet('validacion_mh')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Validación Hacienda (MH)</button>
+        </div>
+
+        <div class="tool-section">
+            <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-guide"></use></svg>Ayuda y Exportación</h4>
+            <p class="help-text">Instrucciones para importar tu archivo a Jira.</p>
+            <button class="tutorial-button" onclick="mostrarTutorialJira()">Ver Guía de Importación Xray</button>
+        </div>
+
+        <div class="tool-section">
+            <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-refresh"></use></svg>Actualizaciones</h4>
+            <p class="help-text">Versión actual: <strong id="appVersion">Consultando...</strong></p>
+            <button class="update-button" onclick="buscarActualizaciones()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-refresh"></use></svg>Buscar actualización</button>
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="main-content">
+        <h1>Generador de Casos // Xstore & Omnipay</h1>
+        
+        <!-- PANEL DE GENERACIÓN LOTE -->
+        <div class="panel">
+            <h3>Creación Rápida en Lote<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Pega una lista de títulos y crea un caso de prueba por cada uno." data-help="Pega una lista de títulos y crea un caso de prueba por cada uno."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h3>
+            <textarea id="listaLote" rows="3" placeholder="Pega tu lista de títulos aquí..."></textarea>
+            <button class="primary" onclick="generarEsqueletos()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Generar Esqueletos Vacíos</button>
+            <button onclick="limpiarTodo()" class="btn-danger" style="float: right;">Borrar Todo</button>
+        </div>
+
+        <!-- PANEL DE EXPORTACIÓN -->
+        <div class="panel" style="background: white;">
+            <div class="global-config-grid">
+                <div>
+                    <label>TICKET JIRA<span class="help-tip ticket-help" tabindex="0" role="img" aria-label="Ayuda: Identificador del ticket que se incluirá en el archivo CSV." data-help="Identificador del ticket que se incluirá en el archivo CSV."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></label>
+                    <input type="text" id="globalTicket" value="OMP-18704" onchange="guardarLocal()">
+                </div>
+                <div>
+                    <label>ETIQUETAS GLOBALES<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Etiquetas compartidas que se agregarán a los casos exportados." data-help="Etiquetas compartidas que se agregarán a los casos exportados."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></label>
+                    <input type="text" id="globalEtiquetas" value="FCF, Mercaderia, ConDistrito" onchange="guardarLocal()">
+                </div>
+            </div>
+        </div>
+
+        <!-- LISTA DE CASOS -->
+        <div class="cases-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="selectAllCheckbox" onchange="alternarSeleccionarTodo(this)">
+                <span>Seleccionar Todos (<span id="contadorCasos">0</span>)</span>
+                <span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Marca esta casilla para seleccionar todos los casos; también puedes seleccionar solo algunos." data-help="Marca esta casilla para seleccionar todos los casos; también puedes seleccionar solo algunos."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span>
+            </div>
+            <button onclick="agregarCasoBlanco()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Añadir Caso Vacío</button>
+        </div>
+        
+        <div id="casosLista"></div>
+        
+        <div class="toolbar-bottom">
+            <span id="estadoGuardado" class="help-text">Autoguardado activo.</span>
+            <div class="download-action">
+                <button class="primary btn-large" onclick="descargarCSV()">Descargar CSV para Xray</button>
+                <span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Descarga el CSV para Xray. Al mapear campos en Jira, asigna HU Relacionada a Link 'tests'." data-help="Descarga el CSV para Xray. En el paso de mapeo de campos de Jira, asigna HU Relacionada a Link 'tests' para asociar cada caso con su historia."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- MENÚ DE OPERACIONES MASIVAS (FLOTANTE) -->
+<div class="bulk-menu" id="bulkMenu">
+    <div class="bulk-info"><span id="bulkSelectedCount">0</span> SELECCIONADOS<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Estas acciones se aplican a todos los casos seleccionados." data-help="Estas acciones se aplican a todos los casos seleccionados."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></div>
+    <button class="bulk-btn" id="bulkPasteBtn" onclick="pegarPasosMasivo()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-paste"></use></svg>Pegar Pasos</button>
+    <button class="bulk-btn" onclick="duplicarMasivo()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-copy"></use></svg>Clonar Casos</button>
+    <label class="bulk-status-label" for="bulkStatusSelect">Estado</label>
+    <select class="bulk-status-select" id="bulkStatusSelect" aria-label="Nuevo estado para los casos seleccionados">
+        <option value="pending">Pendiente</option>
+        <option value="editing">En edición</option>
+        <option value="ready">Listo</option>
+    </select>
+    <button class="bulk-btn bulk-status-apply" onclick="cambiarEstadoMasivo()">Aplicar</button>
+    <button class="bulk-btn btn-danger-masivo" onclick="borrarMasivo()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-trash"></use></svg>Borrar</button>
+</div>
+
+<div class="toast" id="toastMsg">Acción completada</div>
+
+<script src="app.js"></script>
+<!-- MODAL PERSONALIZADO PARA ALERTAS Y CONFIRMACIONES -->
+<div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+        <div class="modal-message" id="modalMessage">Mensaje de alerta</div>
+        <div class="modal-actions">
+            <button id="modalCancel" style="display: none;">Cancelar</button>
+            <button id="modalConfirm" class="primary">Aceptar</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
