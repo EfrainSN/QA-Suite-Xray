@@ -1,6 +1,6 @@
 {
   "name": "qa-suite-xray",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Herramienta QA para Xstore y Xray",
   "main": "main.js",
   "private": true,

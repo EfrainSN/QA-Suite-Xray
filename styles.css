@@ -38,7 +38,7 @@ button.primary:hover { background: #0047b3; }
 button.btn-danger { color: var(--danger); box-shadow: inset 0 0 0 1px #ffbdad; background: #ffebe6;}
 button.btn-danger:hover { background: #ffbdad; }
 .btn-large { padding: 12px 24px; font-size: 14px; }
-.btn-file { display: inline-block; padding: 8px 16px; background: #f4f5f7; color: #42526e; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; text-align: center; width: 100%; box-sizing: border-box; box-shadow: inset 0 0 0 1px var(--gray-border); margin-top: 5px;}
+.btn-file { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; background: #f4f5f7; color: #42526e; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; text-align: center; width: 100%; box-sizing: border-box; box-shadow: inset 0 0 0 1px var(--gray-border); margin-top: 6px;}
 .btn-file input[type="file"] { display: none; }
 .snippet-btn { width: 100%; justify-content: flex-start; margin-bottom: 5px; background: #e6fcff; color: #006644; box-shadow: inset 0 0 0 1px #79f2c0;}
 .snippet-btn:hover { background: #b3f5ff; }
@@ -165,6 +165,12 @@ body {
 
 .sidebar button,
 .sidebar .btn-file {
+    width: 100%;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     border: 1px solid rgba(244, 252, 255, 0.82);
     background: linear-gradient(180deg, #ffffff 0%, #edf7ff 48%, #c8e2f5 100%);
     color: #17466f;
