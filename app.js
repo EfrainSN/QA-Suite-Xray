@@ -33,12 +33,40 @@ window.onload = () => {
     cargarVersionAplicacion();
 };
 
-function guardarLocal() {
-    localStorage.setItem('qa_casos_xray', JSON.stringify(casosGlobales));
-    localStorage.setItem('qa_ticket', document.getElementById('globalTicket').value);
-    localStorage.setItem('qa_tags', document.getElementById('globalEtiquetas').value);
-    mostrarEstado("Guardado hace un momento.");
+let debounceGuardarTimer = null;
+
+function guardarLocal(inmediato = false) {
+    if (inmediato) {
+        if (debounceGuardarTimer) {
+            clearTimeout(debounceGuardarTimer);
+            debounceGuardarTimer = null;
+        }
+        ejecutarGuardado();
+        return;
+    }
+    if (debounceGuardarTimer) clearTimeout(debounceGuardarTimer);
+    debounceGuardarTimer = setTimeout(() => {
+        debounceGuardarTimer = null;
+        ejecutarGuardado();
+    }, 150);
 }
+
+function ejecutarGuardado() {
+    try {
+        localStorage.setItem('qa_casos_xray', JSON.stringify(casosGlobales));
+        const ticketEl = document.getElementById('globalTicket');
+        if (ticketEl) localStorage.setItem('qa_ticket', ticketEl.value);
+        const tagsEl = document.getElementById('globalEtiquetas');
+        if (tagsEl) localStorage.setItem('qa_tags', tagsEl.value);
+        mostrarEstado("Guardado hace un momento.");
+    } catch (error) {
+        console.error('Error al guardar en almacenamiento local:', error);
+    }
+}
+
+window.addEventListener('beforeunload', () => {
+    guardarLocal(true);
+});
 
 function cargarLocal() {
     const guardado = localStorage.getItem('qa_casos_xray');
@@ -190,12 +218,11 @@ function escaparHTML(texto) {
 // --- RENDERIZADO PRINCIPAL ---
 function renderizarCasos() {
     const contenedor = document.getElementById("casosLista");
-    contenedor.innerHTML = ""; 
     document.getElementById("contadorCasos").innerText = casosGlobales.length;
 
-    casosGlobales.forEach((caso, cIndex) => {
+    const htmlCasos = casosGlobales.map((caso, cIndex) => {
         let htmlPasos = "";
-        caso.pasos.forEach((paso, pIndex) => {
+        (caso.pasos || []).forEach((paso, pIndex) => {
             htmlPasos += `
                 <div class="step-row" draggable="true" ondragstart="dragPasoStart(event, ${cIndex}, ${pIndex})" ondragover="dragOver(event)" ondrop="dropPaso(event, ${cIndex}, ${pIndex})">
                     <div class="drag-handle" title="Arrastrar para reordenar"><svg class="ui-icon" aria-hidden="true"><use href="#icon-grip"></use></svg></div>
@@ -221,7 +248,7 @@ function renderizarCasos() {
         const totalPasos = Array.isArray(caso.pasos) ? caso.pasos.length : 0;
         const textoPasos = totalPasos === 1 ? '1 paso' : `${totalPasos} pasos`;
 
-        const htmlCaso = `
+        return `
             <div class="case-item ${claseSeleccionado}" id="case-item-${cIndex}" draggable="true" ondragstart="dragCasoStart(event, ${cIndex})" ondragover="dragOverCaso(event, ${cIndex})" ondrop="dropCaso(event, ${cIndex})" ondragleave="dragLeaveCaso(event, ${cIndex})">
                 <div class="case-header" onclick="toggleAcordeon('body-${cIndex}')">
                     <div class="case-title">
@@ -229,8 +256,8 @@ function renderizarCasos() {
                         <input type="checkbox" id="check-${cIndex}" ${esSeleccionado} onclick="event.stopPropagation(); alternarSeleccionCaso(${cIndex}, this)">
                         <span style="color: #5e6c84; font-family: monospace;">CP-${tcidNum}</span> 
                         <span class="editable" style="display:inline; flex:1;" contenteditable="true" onclick="event.stopPropagation()" onblur="actualizarCaso(${cIndex}, 'titulo', this)">${escaparHTML(caso.titulo)}</span>
-                        <span class="case-steps-badge" title="Cantidad de pasos de prueba en este caso">${textoPasos}</span>
-                        <span class="status-badge ${estadoActual.clase}" onclick="event.stopPropagation(); ciclarEstado(${cIndex})" title="Haz clic para cambiar el estado"><svg class="ui-icon" aria-hidden="true"><use href="#${estadoActual.icono}"></use></svg>${estadoActual.texto}</span>
+                        <span class="case-steps-badge" id="steps-badge-${cIndex}" title="Cantidad de pasos de prueba en este caso">${textoPasos}</span>
+                        <span class="status-badge ${estadoActual.clase}" id="status-badge-${cIndex}" onclick="event.stopPropagation(); ciclarEstado(${cIndex})" title="Haz clic para cambiar el estado"><svg class="ui-icon" aria-hidden="true"><use href="#${estadoActual.icono}"></use></svg>${estadoActual.texto}</span>
                     </div>
                     <div style="display:flex; gap:5px;" onclick="event.stopPropagation()">
                         <button onclick="duplicarCaso(${cIndex})"><svg class="ui-icon" aria-hidden="true"><use href="#icon-copy"></use></svg>Clonar</button>
@@ -257,9 +284,9 @@ function renderizarCasos() {
                 </div>
             </div>
         `;
-        contenedor.innerHTML += htmlCaso;
     });
-    
+
+    contenedor.innerHTML = htmlCasos.join('');
     actualizarMenuMasivo();
 }
 
@@ -267,6 +294,7 @@ function renderizarCasos() {
 
 // 1. Exportar / Importar Workspace (.qa)
 async function exportarWorkspace() {
+    guardarLocal(true);
     if (casosGlobales.length === 0) return await alertUI("El espacio de trabajo está vacío. No hay nada que exportar.");
     
     const workspace = {
@@ -359,12 +387,22 @@ async function inyectarSnippet(snippetKey) {
 }
 
 // 4. Semáforo de Estado
+function actualizarBadgeEstadoDOM(cIndex, estadoKey) {
+    const badge = document.getElementById(`status-badge-${cIndex}`);
+    if (!badge) return;
+    const info = ESTADOS[estadoKey || 'pending'];
+    badge.className = `status-badge ${info.clase}`;
+    badge.innerHTML = `<svg class="ui-icon" aria-hidden="true"><use href="#${info.icono}"></use></svg>${info.texto}`;
+}
+
 function ciclarEstado(cIndex) {
     const caso = casosGlobales[cIndex];
+    if (!caso) return;
     const actual = caso.status || 'pending';
-    caso.status = ESTADOS[actual].siguiente;
+    const nuevo = ESTADOS[actual].siguiente;
+    caso.status = nuevo;
+    actualizarBadgeEstadoDOM(cIndex, nuevo);
     guardarLocal();
-    renderizarCasos();
 }
 
 // --- DRAG & DROP (REORDENAMIENTO) ---
@@ -463,13 +501,36 @@ async function generarEsqueletos() {
 }
 
 function alternarSeleccionCaso(cIndex, checkbox) {
-    casosGlobales[cIndex].selected = checkbox.checked;
-    guardarLocal(); renderizarCasos();
+    if (!casosGlobales[cIndex]) return;
+    const seleccionado = checkbox.checked;
+    casosGlobales[cIndex].selected = seleccionado;
+    const tarjeta = document.getElementById(`case-item-${cIndex}`);
+    if (tarjeta) {
+        tarjeta.classList.toggle('selected', seleccionado);
+    }
+
+    const masterCb = document.getElementById('selectAllCheckbox');
+    if (masterCb) {
+        const total = casosGlobales.length;
+        const seleccionados = casosGlobales.filter(c => c.selected).length;
+        masterCb.checked = total > 0 && seleccionados === total;
+    }
+
+    actualizarMenuMasivo();
+    guardarLocal();
 }
 
 function alternarSeleccionarTodo(masterCb) {
-    casosGlobales.forEach(c => c.selected = masterCb.checked);
-    guardarLocal(); renderizarCasos();
+    const seleccionado = masterCb.checked;
+    casosGlobales.forEach((c, cIndex) => {
+        c.selected = seleccionado;
+        const cb = document.getElementById(`check-${cIndex}`);
+        if (cb) cb.checked = seleccionado;
+        const tarjeta = document.getElementById(`case-item-${cIndex}`);
+        if (tarjeta) tarjeta.classList.toggle('selected', seleccionado);
+    });
+    actualizarMenuMasivo();
+    guardarLocal();
 }
 
 function actualizarMenuMasivo() {
@@ -481,13 +542,17 @@ function actualizarMenuMasivo() {
 
 function cambiarEstadoMasivo() {
     const estado = document.getElementById('bulkStatusSelect').value;
-    const seleccionados = casosGlobales.filter(caso => caso.selected);
-    if (seleccionados.length === 0) return;
-
-    seleccionados.forEach(caso => { caso.status = estado; });
+    let actualizados = 0;
+    casosGlobales.forEach((caso, cIndex) => {
+        if (caso.selected) {
+            caso.status = estado;
+            actualizarBadgeEstadoDOM(cIndex, estado);
+            actualizados++;
+        }
+    });
+    if (actualizados === 0) return;
     guardarLocal();
-    renderizarCasos();
-    mostrarToast(`Estado actualizado en ${seleccionados.length} casos.`);
+    mostrarToast(`Estado actualizado en ${actualizados} casos.`);
 }
 
 async function pegarPasosMasivo() {
@@ -537,6 +602,7 @@ function actualizarPaso(ci, pi, c, el) { casosGlobales[ci].pasos[pi][c] = el.inn
 function escaparCSV(texto) { return `"${(texto || '').toString().replace(/"/g, '""')}"`; }
 
 async function descargarCSV() {
+    guardarLocal(true);
     if (casosGlobales.length === 0) return await alertUI("No hay casos para descargar.");
     
     const tkt = document.getElementById('globalTicket').value || "TICKET";
