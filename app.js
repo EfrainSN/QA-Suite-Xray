@@ -220,6 +220,13 @@ function renderizarCasos() {
     const contenedor = document.getElementById("casosLista");
     document.getElementById("contadorCasos").innerText = casosGlobales.length;
 
+    const masterCb = document.getElementById('selectAllCheckbox');
+    if (masterCb) {
+        const total = casosGlobales.length;
+        const seleccionados = casosGlobales.filter(c => c.selected).length;
+        masterCb.checked = total > 0 && seleccionados === total;
+    }
+
     const htmlCasos = casosGlobales.map((caso, cIndex) => {
         let htmlPasos = "";
         (caso.pasos || []).forEach((paso, pIndex) => {
@@ -253,7 +260,9 @@ function renderizarCasos() {
                 <div class="case-header" onclick="toggleAcordeon('body-${cIndex}')">
                     <div class="case-title">
                         <div class="drag-handle" onclick="event.stopPropagation()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-grip"></use></svg></div>
-                        <input type="checkbox" id="check-${cIndex}" ${esSeleccionado} onclick="event.stopPropagation(); alternarSeleccionCaso(${cIndex}, this)">
+                        <label class="case-check-btn" onclick="event.stopPropagation()" title="Seleccionar caso CP-${tcidNum}">
+                            <input type="checkbox" id="check-${cIndex}" class="case-checkbox" ${esSeleccionado} onchange="alternarSeleccionCaso(${cIndex}, this)">
+                        </label>
                         <span style="color: #5e6c84; font-family: monospace;">CP-${tcidNum}</span> 
                         <span class="editable" style="display:inline; flex:1;" contenteditable="true" onclick="event.stopPropagation()" onblur="actualizarCaso(${cIndex}, 'titulo', this)">${escaparHTML(caso.titulo)}</span>
                         <span class="case-steps-badge" id="steps-badge-${cIndex}" title="Cantidad de pasos de prueba en este caso">${textoPasos}</span>

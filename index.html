@@ -148,9 +148,11 @@
 
         <!-- LISTA DE CASOS -->
         <div class="cases-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" id="selectAllCheckbox" onchange="alternarSeleccionarTodo(this)">
-                <span>Seleccionar Todos (<span id="contadorCasos">0</span>)</span>
+            <div class="cases-select-group">
+                <label class="select-all-pill" for="selectAllCheckbox" title="Seleccionar o deseleccionar todos los casos">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="alternarSeleccionarTodo(this)">
+                    <span class="select-all-text">Seleccionar Todos (<span id="contadorCasos">0</span>)</span>
+                </label>
                 <span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Marca esta casilla para seleccionar todos los casos; también puedes seleccionar solo algunos." data-help="Marca esta casilla para seleccionar todos los casos; también puedes seleccionar solo algunos."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span>
             </div>
             <button onclick="agregarCasoBlanco()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Añadir Caso Vacío</button>
