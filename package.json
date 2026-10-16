@@ -1,7 +1,7 @@
 {
   "name": "qa-suite-xray",
   "version": "1.4.1",
-  "description": "Herramienta QA para Xstore y Xray",
+  "description": "Herramienta QA para preparación de casos de prueba manuales y exportación a Jira Xray",
   "main": "main.js",
   "author": "Efrain Cortez",
   "license": "MIT",

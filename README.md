@@ -1,6 +1,6 @@
 # QA Suite Xray
 
-QA Suite Xray es una aplicación de escritorio para preparar casos de prueba manuales de Xstore y Omnipay y exportarlos a un archivo CSV que se puede importar en Jira con Xray. La aplicación organiza el trabajo localmente y ayuda a revisar los datos antes de importarlos; no crea incidencias ni modifica Jira directamente.
+QA Suite Xray es una aplicación de escritorio para preparar casos de prueba manuales y exportarlos a un archivo CSV estructurado listo para importarse en Jira con Xray. La aplicación organiza el trabajo localmente y ayuda a revisar los datos antes de importarlos; no crea incidencias ni modifica Jira directamente.
 
 ## Para qué sirve
 
@@ -24,7 +24,7 @@ El resultado es un archivo listo para que una persona autorizada lo importe y co
 - **Pasos de ejecución:** cada paso contiene una acción y su resultado esperado. Se pueden añadir, borrar, reordenar y copiar entre casos.
 - **Reordenamiento:** arrastra los casos para cambiar su orden y arrastra sus pasos para ordenarlos dentro del caso.
 - **Clonado y borrado:** duplica casos individualmente o en grupo; las operaciones de borrado solicitan confirmación.
-- **Snippets:** agrega secuencias de ejemplo para inicio de sesión y apertura de POS, pago con tarjeta y validación de Hacienda.
+- **Snippets:** agrega secuencias de pasos predefinidas y reutilizables para flujos comunes (como inicio de sesión, flujos transaccionales o validaciones del sistema).
 - **Buscar y reemplazar:** aplica un reemplazo a los casos seleccionados.
 
 ### Estados y operaciones masivas
@@ -76,7 +76,7 @@ El archivo contiene estas diez columnas:
 | `Acción` | Acción de un paso. Cada paso genera una fila. |
 | `Datos de Prueba` | Se deja vacío para completar o mapear según el proceso del equipo. |
 | `Resultado Esperado` | Resultado esperado para el paso correspondiente. |
-| `Componentes` | Se genera como `SV-FEL`. |
+| `Componentes` | Identificador del componente asignado por defecto para la exportación. |
 | `Etiquetas` | Combina el ticket Jira y las etiquetas globales configuradas. |
 | `HU Relacionada` | Contiene el ticket Jira configurado para vincular el caso con su historia durante la importación. |
 

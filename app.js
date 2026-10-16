@@ -13,16 +13,16 @@ const ESTADOS = {
 // Librería de Snippets predefinidos
 const SNIPPETS = {
     login: [
-        { accion: "Ingresar credenciales válidas en pantalla de login de Xstore.", resultado_esperado: "El sistema autentica al usuario y muestra el dashboard principal." },
-        { accion: "Seleccionar la opción de 'Apertura de Turno/Caja'.", resultado_esperado: "El turno se abre exitosamente permitiendo transacciones." }
+        { accion: "Ingresar credenciales válidas en la pantalla de inicio de sesión.", resultado_esperado: "El sistema autentica al usuario y muestra la pantalla principal." },
+        { accion: "Seleccionar la opción de apertura de turno o sesión de trabajo.", resultado_esperado: "La sesión se inicia exitosamente permitiendo operar en el sistema." }
     ],
     pago_tarjeta: [
-        { accion: "Seleccionar método de pago: Tarjeta de Crédito.", resultado_esperado: "El POS habilita la interfaz de pago con tarjeta." },
-        { accion: "Deslizar/Insertar tarjeta en el PinPad y aprobar monto.", resultado_esperado: "Transacción aprobada, se imprime el voucher y se registra el pago." }
+        { accion: "Seleccionar método de pago: Tarjeta de Crédito.", resultado_esperado: "El sistema habilita la interfaz de pago con tarjeta." },
+        { accion: "Ingresar datos del medio de pago y confirmar monto.", resultado_esperado: "Transacción aprobada, se genera el comprobante y se registra la operación." }
     ],
     validacion_mh: [
-        { accion: "Validar en Infile que la transacción correspondiente esté certificada con éxito.", resultado_esperado: "La transacción queda certificada con éxito en Infile." },
-        { accion: "Verificar que el JSON Simplificado generado por Xstore tenga los datos correctos.", resultado_esperado: "El JSON Simplificado incorpora los datos correctamente validados." }
+        { accion: "Validar que la transacción correspondiente se procese y registre con éxito.", resultado_esperado: "La transacción queda registrada exitosamente en el sistema." },
+        { accion: "Verificar que la información de respuesta contenga los datos y estructura correctos.", resultado_esperado: "El sistema valida y procesa los datos correctamente." }
     ]
 };
 

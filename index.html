@@ -102,9 +102,9 @@
         <div class="tool-section">
             <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-library"></use></svg>Librería de Snippets<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Añade pasos predefinidos a todos los casos seleccionados." data-help="Añade pasos predefinidos a todos los casos seleccionados."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
             <p class="help-text">Aplica secuencias comunes a los casos seleccionados.</p>
-            <button class="snippet-btn" onclick="inyectarSnippet('login')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Login y Apertura POS</button>
+            <button class="snippet-btn" onclick="inyectarSnippet('login')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Inicio de Sesión</button>
             <button class="snippet-btn" onclick="inyectarSnippet('pago_tarjeta')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Cobro Tarjeta Crédito</button>
-            <button class="snippet-btn" onclick="inyectarSnippet('validacion_mh')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Validación Hacienda (MH)</button>
+            <button class="snippet-btn" onclick="inyectarSnippet('validacion_mh')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Validación de Respuesta</button>
         </div>
 
         <div class="tool-section">
@@ -122,7 +122,7 @@
 
     <!-- ÁREA PRINCIPAL -->
     <main class="main-content">
-        <h1>Generador de Casos // Xstore & Omnipay</h1>
+        <h1>Generador de Casos // QA Suite Xray</h1>
         
         <!-- PANEL DE GENERACIÓN LOTE -->
         <div class="panel">
@@ -137,11 +137,11 @@
             <div class="global-config-grid">
                 <div>
                     <label>TICKET JIRA<span class="help-tip ticket-help" tabindex="0" role="img" aria-label="Ayuda: Identificador del ticket que se incluirá en el archivo CSV." data-help="Identificador del ticket que se incluirá en el archivo CSV."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></label>
-                    <input type="text" id="globalTicket" value="OMP-18704" onchange="guardarLocal()">
+                    <input type="text" id="globalTicket" value="PROJ-101" onchange="guardarLocal()">
                 </div>
                 <div>
                     <label>ETIQUETAS GLOBALES<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Etiquetas compartidas que se agregarán a los casos exportados." data-help="Etiquetas compartidas que se agregarán a los casos exportados."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></label>
-                    <input type="text" id="globalEtiquetas" value="FCF, Mercaderia, ConDistrito" onchange="guardarLocal()">
+                    <input type="text" id="globalEtiquetas" value="Regresion, SmokeTest" onchange="guardarLocal()">
                 </div>
             </div>
         </div>
