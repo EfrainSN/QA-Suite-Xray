@@ -10,24 +10,91 @@ const ESTADOS = {
     ready:   { clase: 'status-ready',   texto: 'Listo', icono: 'icon-status-ready', siguiente: 'pending' }
 };
 
-// Librería de Snippets predefinidos
+// Librería de Snippets predefinidos (Repertorio base)
+const DEFAULT_SNIPPETS = [
+    {
+        id: "login",
+        nombre: "Inicio de Sesión",
+        pasos: [
+            { accion: "Ingresar credenciales válidas en la pantalla de inicio de sesión.", resultado_esperado: "El sistema autentica al usuario y muestra la pantalla principal." },
+            { accion: "Seleccionar la opción de apertura de turno o sesión de trabajo.", resultado_esperado: "La sesión se inicia exitosamente permitiendo operar en el sistema." }
+        ]
+    },
+    {
+        id: "pago_tarjeta",
+        nombre: "Cobro Tarjeta Crédito",
+        pasos: [
+            { accion: "Seleccionar método de pago: Tarjeta de Crédito.", resultado_esperado: "El sistema habilita la interfaz de pago con tarjeta." },
+            { accion: "Ingresar datos del medio de pago y confirmar monto.", resultado_esperado: "Transacción aprobada, se genera el comprobante y se registra la operación." }
+        ]
+    },
+    {
+        id: "validacion_mh",
+        nombre: "Validación de Respuesta",
+        pasos: [
+            { accion: "Validar que la transacción correspondiente se procese y registre con éxito.", resultado_esperado: "La transacción queda registrada exitosamente en el sistema." },
+            { accion: "Verificar que la información de respuesta contenga los datos y estructura correctos.", resultado_esperado: "El sistema valida y procesa los datos correctamente." }
+        ]
+    }
+];
+
+let snippetsUsuario = [];
+
+// Compatibilidad retroactiva con SNIPPETS objeto
 const SNIPPETS = {
-    login: [
-        { accion: "Ingresar credenciales válidas en la pantalla de inicio de sesión.", resultado_esperado: "El sistema autentica al usuario y muestra la pantalla principal." },
-        { accion: "Seleccionar la opción de apertura de turno o sesión de trabajo.", resultado_esperado: "La sesión se inicia exitosamente permitiendo operar en el sistema." }
-    ],
-    pago_tarjeta: [
-        { accion: "Seleccionar método de pago: Tarjeta de Crédito.", resultado_esperado: "El sistema habilita la interfaz de pago con tarjeta." },
-        { accion: "Ingresar datos del medio de pago y confirmar monto.", resultado_esperado: "Transacción aprobada, se genera el comprobante y se registra la operación." }
-    ],
-    validacion_mh: [
-        { accion: "Validar que la transacción correspondiente se procese y registre con éxito.", resultado_esperado: "La transacción queda registrada exitosamente en el sistema." },
-        { accion: "Verificar que la información de respuesta contenga los datos y estructura correctos.", resultado_esperado: "El sistema valida y procesa los datos correctamente." }
-    ]
+    login: DEFAULT_SNIPPETS[0].pasos,
+    pago_tarjeta: DEFAULT_SNIPPETS[1].pasos,
+    validacion_mh: DEFAULT_SNIPPETS[2].pasos
 };
+
+function cargarSnippets() {
+    try {
+        const guardados = localStorage.getItem('qa_snippets');
+        if (guardados) {
+            const parsed = JSON.parse(guardados);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                snippetsUsuario = parsed;
+                renderizarSnippetsSidebar();
+                return;
+            }
+        }
+    } catch {
+        // noop
+    }
+    snippetsUsuario = JSON.parse(JSON.stringify(DEFAULT_SNIPPETS));
+    guardarSnippets();
+}
+
+function guardarSnippets() {
+    localStorage.setItem('qa_snippets', JSON.stringify(snippetsUsuario));
+    renderizarSnippetsSidebar();
+}
+
+function renderizarSnippetsSidebar() {
+    const contenedor = document.getElementById('snippetsSidebarList');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    if (!Array.isArray(snippetsUsuario) || snippetsUsuario.length === 0) {
+        contenedor.innerHTML = '<p class="help-text" style="font-style: italic; margin-bottom: 8px;">Repertorio vacío. Crea uno nuevo.</p>';
+        return;
+    }
+
+    snippetsUsuario.forEach(snippet => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'snippet-btn';
+        const total = Array.isArray(snippet.pasos) ? snippet.pasos.length : 0;
+        btn.title = `Inyectar ${total} paso${total === 1 ? '' : 's'} a casos seleccionados`;
+        btn.onclick = () => inyectarSnippet(snippet.id);
+        btn.innerHTML = `<svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>${escaparHTML(snippet.nombre)}`;
+        contenedor.appendChild(btn);
+    });
+}
 
 // --- INICIALIZACIÓN ---
 window.onload = () => {
+    cargarSnippets();
     cargarLocal();
     renderizarCasos();
     cargarVersionAplicacion();
@@ -499,19 +566,254 @@ async function reemplazarMasivo() {
 }
 
 // 3. Librería de Snippets
-async function inyectarSnippet(snippetKey) {
+async function inyectarSnippet(snippetId) {
     const indices = casosGlobales.reduce((acc, c, idx) => c.selected ? [...acc, idx] : acc, []);
     if (indices.length === 0) return await alertUI("Selecciona al menos un caso marcando su casilla para inyectar este snippet.");
     
-    const snippetPasos = SNIPPETS[snippetKey];
+    // Buscar en snippets del usuario o predeterminados
+    let snippet = snippetsUsuario.find(s => s.id === snippetId);
+    if (!snippet) {
+        snippet = DEFAULT_SNIPPETS.find(s => s.id === snippetId);
+    }
+    
+    const pasos = Array.isArray(snippet?.pasos) ? snippet.pasos : (SNIPPETS[snippetId] || []);
+    if (pasos.length === 0) {
+        return await alertUI("El snippet seleccionado no contiene pasos válidos.");
+    }
     
     indices.forEach(idx => {
-        casosGlobales[idx].pasos = [...casosGlobales[idx].pasos, ...JSON.parse(JSON.stringify(snippetPasos))];
+        casosGlobales[idx].pasos = [...casosGlobales[idx].pasos, ...JSON.parse(JSON.stringify(pasos))];
     });
     
     guardarLocal();
     renderizarCasos();
-    mostrarToast(`Snippet inyectado en ${indices.length} casos seleccionados.`);
+    const nombre = snippet?.nombre || 'Snippet';
+    mostrarToast(`"${nombre}" inyectado en ${indices.length} casos seleccionados.`);
+}
+
+// --- GESTIÓN DEL REPERTORIO DE SNIPPETS (CRUD) ---
+
+function abrirGestorSnippets() {
+    const modal = document.getElementById('snippetsModal');
+    if (!modal) return;
+    
+    document.getElementById('snippetsListView').style.display = 'block';
+    document.getElementById('snippetsEditorView').style.display = 'none';
+    
+    renderizarListaGestorSnippets();
+    modal.classList.add('active');
+}
+
+function cerrarGestorSnippets() {
+    const modal = document.getElementById('snippetsModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function renderizarListaGestorSnippets() {
+    const contenedor = document.getElementById('snippetsItemsContainer');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+
+    if (!Array.isArray(snippetsUsuario) || snippetsUsuario.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 24px; color: #64748b;">
+                <p>No tienes snippets en tu repertorio.</p>
+                <button type="button" class="primary btn-sm" onclick="abrirEditorSnippet(null)">
+                    <svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Crear Primer Snippet
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    snippetsUsuario.forEach(snippet => {
+        const card = document.createElement('div');
+        card.className = 'snippet-card';
+
+        const pasos = Array.isArray(snippet.pasos) ? snippet.pasos : [];
+        const previewItems = pasos.slice(0, 3).map(p => `<li>${escaparHTML(p.accion || 'Acción sin definir')}</li>`).join('');
+        const masPasos = pasos.length > 3 ? `<li><em>...y ${pasos.length - 3} paso(s) más</em></li>` : '';
+
+        card.innerHTML = `
+            <div class="snippet-card-top">
+                <div class="snippet-card-title-group">
+                    <span class="snippet-card-title">${escaparHTML(snippet.nombre)}</span>
+                    <span class="snippet-step-badge">${pasos.length} paso${pasos.length === 1 ? '' : 's'}</span>
+                </div>
+                <div class="snippet-card-actions">
+                    <button type="button" class="snippet-btn-action" title="Editar snippet" onclick="abrirEditorSnippet('${snippet.id}')">
+                        <svg class="ui-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Editar
+                    </button>
+                    <button type="button" class="snippet-btn-action btn-del" title="Eliminar snippet" onclick="eliminarSnippet('${snippet.id}')">
+                        <svg class="ui-icon" aria-hidden="true"><use href="#icon-trash"></use></svg>Eliminar
+                    </button>
+                </div>
+            </div>
+            <div class="snippet-steps-preview">
+                <ol>${previewItems}${masPasos}</ol>
+            </div>
+        `;
+        contenedor.appendChild(card);
+    });
+}
+
+function abrirEditorSnippet(snippetId = null) {
+    const listView = document.getElementById('snippetsListView');
+    const editorView = document.getElementById('snippetsEditorView');
+    const editorTitle = document.getElementById('snippetEditorTitle');
+    const editIdInput = document.getElementById('snippetEditId');
+    const nombreInput = document.getElementById('snippetNombreInput');
+    const pasosList = document.getElementById('snippetPasosList');
+
+    if (!editorView || !pasosList) return;
+
+    pasosList.innerHTML = '';
+
+    if (!snippetId) {
+        editorTitle.textContent = 'Crear Nuevo Snippet';
+        editIdInput.value = '';
+        nombreInput.value = '';
+        agregarFilaPasoSnippet('', '');
+    } else {
+        const snippet = snippetsUsuario.find(s => s.id === snippetId);
+        if (!snippet) return;
+
+        editorTitle.textContent = `Editar Snippet: ${snippet.nombre}`;
+        editIdInput.value = snippet.id;
+        nombreInput.value = snippet.nombre;
+
+        const pasos = Array.isArray(snippet.pasos) ? snippet.pasos : [];
+        if (pasos.length === 0) {
+            agregarFilaPasoSnippet('', '');
+        } else {
+            pasos.forEach(p => agregarFilaPasoSnippet(p.accion || '', p.resultado_esperado || ''));
+        }
+    }
+
+    listView.style.display = 'none';
+    editorView.style.display = 'block';
+    nombreInput.focus();
+}
+
+function agregarFilaPasoSnippet(accion = '', resultado = '') {
+    const pasosList = document.getElementById('snippetPasosList');
+    if (!pasosList) return;
+
+    const row = document.createElement('div');
+    row.className = 'snippet-paso-row';
+    const index = pasosList.children.length + 1;
+
+    row.innerHTML = `
+        <span class="snippet-paso-num">${index}</span>
+        <input type="text" class="snippet-step-accion" placeholder="Acción del paso..." value="${escaparHTML(accion)}" autocomplete="off">
+        <input type="text" class="snippet-step-resultado" placeholder="Resultado esperado..." value="${escaparHTML(resultado)}" autocomplete="off">
+        <button type="button" class="snippet-paso-del-btn" title="Eliminar paso" onclick="eliminarFilaPasoSnippet(this)">
+            <svg class="ui-icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
+        </button>
+    `;
+    pasosList.appendChild(row);
+    renumerarPasosSnippet();
+}
+
+function eliminarFilaPasoSnippet(btn) {
+    const row = btn?.closest('.snippet-paso-row');
+    const pasosList = document.getElementById('snippetPasosList');
+    if (row && pasosList) {
+        row.remove();
+        if (pasosList.children.length === 0) {
+            agregarFilaPasoSnippet('', '');
+        } else {
+            renumerarPasosSnippet();
+        }
+    }
+}
+
+function renumerarPasosSnippet() {
+    const pasosList = document.getElementById('snippetPasosList');
+    if (!pasosList) return;
+    Array.from(pasosList.children).forEach((row, idx) => {
+        const num = row.querySelector('.snippet-paso-num');
+        if (num) num.textContent = idx + 1;
+    });
+}
+
+function cancelarEditorSnippet() {
+    document.getElementById('snippetsEditorView').style.display = 'none';
+    document.getElementById('snippetsListView').style.display = 'block';
+}
+
+async function guardarSnippetDesdeEditor() {
+    const editId = (document.getElementById('snippetEditId')?.value || '').trim();
+    const nombre = (document.getElementById('snippetNombreInput')?.value || '').trim();
+
+    if (!nombre) {
+        return await alertUI('Por favor ingresa un nombre o título para el snippet.');
+    }
+
+    const pasosRows = document.querySelectorAll('#snippetPasosList .snippet-paso-row');
+    const pasos = [];
+
+    pasosRows.forEach(row => {
+        const accion = (row.querySelector('.snippet-step-accion')?.value || '').trim();
+        const resultado = (row.querySelector('.snippet-step-resultado')?.value || '').trim();
+        if (accion || resultado) {
+            pasos.push({
+                accion: accion || 'Acción de prueba.',
+                resultado_esperado: resultado || 'Resultado satisfactorio.'
+            });
+        }
+    });
+
+    if (pasos.length === 0) {
+        return await alertUI('El snippet debe contener al menos un paso con acción o resultado esperado.');
+    }
+
+    if (editId) {
+        const idx = snippetsUsuario.findIndex(s => s.id === editId);
+        if (idx !== -1) {
+            snippetsUsuario[idx].nombre = nombre;
+            snippetsUsuario[idx].pasos = pasos;
+        } else {
+            snippetsUsuario.push({ id: editId, nombre, pasos });
+        }
+    } else {
+        const nuevoId = 'snip_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+        snippetsUsuario.push({
+            id: nuevoId,
+            nombre,
+            pasos
+        });
+    }
+
+    guardarSnippets();
+    renderizarListaGestorSnippets();
+    mostrarToast(`Snippet "${nombre}" guardado con éxito.`);
+
+    document.getElementById('snippetsEditorView').style.display = 'none';
+    document.getElementById('snippetsListView').style.display = 'block';
+}
+
+async function eliminarSnippet(snippetId) {
+    const snippet = snippetsUsuario.find(s => s.id === snippetId);
+    if (!snippet) return;
+
+    const confirma = await confirmarUI(`¿Estás seguro de que deseas eliminar el snippet "${snippet.nombre}" de tu repertorio?`);
+    if (!confirma) return;
+
+    snippetsUsuario = snippetsUsuario.filter(s => s.id !== snippetId);
+    guardarSnippets();
+    renderizarListaGestorSnippets();
+    mostrarToast(`Snippet "${snippet.nombre}" eliminado.`);
+}
+
+async function restablecerSnippetsPredeterminados() {
+    const confirma = await confirmarUI("¿Deseas restablecer los snippets de fábrica? Se conservarán los 3 predeterminados (Inicio de Sesión, Cobro Tarjeta, Validación de Respuesta).");
+    if (!confirma) return;
+
+    snippetsUsuario = JSON.parse(JSON.stringify(DEFAULT_SNIPPETS));
+    guardarSnippets();
+    renderizarListaGestorSnippets();
+    mostrarToast("Snippets restablecidos a los valores predeterminados.");
 }
 
 // 4. Semáforo de Estado

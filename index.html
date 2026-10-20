@@ -79,6 +79,13 @@
         <circle cx="8" cy="15" r="4" />
         <path d="m10.8 12.2 8.2-8.2h3v3l-2 2h-2l-2 2" />
     </symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24">
+        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </symbol>
 </svg>
 
 <div class="layout">
@@ -113,11 +120,15 @@
         </div>
 
         <div class="tool-section">
-            <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-library"></use></svg>Librería de Snippets<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Añade pasos predefinidos a todos los casos seleccionados." data-help="Añade pasos predefinidos a todos los casos seleccionados."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
-            <p class="help-text">Aplica secuencias comunes a los casos seleccionados.</p>
-            <button class="snippet-btn" onclick="inyectarSnippet('login')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Inicio de Sesión</button>
-            <button class="snippet-btn" onclick="inyectarSnippet('pago_tarjeta')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Cobro Tarjeta Crédito</button>
-            <button class="snippet-btn" onclick="inyectarSnippet('validacion_mh')"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Validación de Respuesta</button>
+            <div class="section-header-flex">
+                <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-library"></use></svg>Librería de Snippets<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Añade pasos predefinidos a todos los casos seleccionados." data-help="Añade pasos predefinidos a todos los casos seleccionados."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
+                <button type="button" class="btn-icon-tiny" onclick="abrirGestorSnippets()" title="Administrar repertorio de snippets"><svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"></use></svg></button>
+            </div>
+            <p class="help-text">Aplica secuencias a casos seleccionados o gestiona tu repertorio.</p>
+            <div id="snippetsSidebarList"></div>
+            <button type="button" class="btn-manage-snippets" onclick="abrirGestorSnippets()">
+                <svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Gestionar Repertorio
+            </button>
         </div>
 
         <div class="tool-section">
@@ -138,12 +149,16 @@
         <h1>Generador de Casos // QA Suite Xray</h1>
         
         <!-- PANEL DE GENERACIÓN LOTE -->
-        <div class="panel">
+        <div class="panel batch-panel">
             <h3>Creación Rápida en Lote<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Pega una lista de títulos y crea un caso de prueba por cada uno." data-help="Pega una lista de títulos y crea un caso de prueba por cada uno."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h3>
             <textarea id="listaLote" rows="3" placeholder="Pega tu lista de títulos aquí..."></textarea>
-            <button class="primary" onclick="generarEsqueletos()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Generar Esqueletos Vacíos</button>
-            <button type="button" class="ai-secondary-btn" onclick="abrirModalIA()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg>Generar con IA (Groq)</button>
-            <button onclick="limpiarTodo()" class="btn-danger" style="float: right;">Borrar Todo</button>
+            <div class="batch-toolbar">
+                <div class="batch-toolbar-left">
+                    <button type="button" class="primary" onclick="generarEsqueletos()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Generar Esqueletos Vacíos</button>
+                    <button type="button" class="ai-secondary-btn" onclick="abrirModalIA()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg>Generar con IA (Groq)</button>
+                </div>
+                <button type="button" onclick="limpiarTodo()" class="btn-danger"><svg class="ui-icon" aria-hidden="true"><use href="#icon-trash"></use></svg>Borrar Todo</button>
+            </div>
         </div>
 
         <!-- PANEL DE EXPORTACIÓN -->
@@ -311,6 +326,73 @@
                 <button type="button" class="ai-btn-secondary" onclick="reintentarGeneracionIA()">Reintentar</button>
                 <button type="button" class="btn-danger" onclick="aplicarCasosIA('replace')">Reemplazar Todo</button>
                 <button type="button" class="primary" onclick="aplicarCasosIA('append')">Añadir a la Lista</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL GESTOR DEL REPERTORIO DE SNIPPETS -->
+<div class="modal-overlay" id="snippetsModal" role="dialog" aria-modal="true" aria-labelledby="snippetsModalTitle">
+    <div class="modal-box snippets-modal-box">
+        <div class="snippets-modal-header">
+            <h3 id="snippetsModalTitle">
+                <svg class="ui-icon" style="color: #006644;" aria-hidden="true"><use href="#icon-library"></use></svg>
+                Repertorio de Snippets
+            </h3>
+            <button type="button" class="snippets-close-btn" onclick="cerrarGestorSnippets()" title="Cerrar modal">&times;</button>
+        </div>
+
+        <div class="snippets-modal-body">
+            <!-- VISTA: LISTA DE SNIPPETS -->
+            <div id="snippetsListView">
+                <div class="snippets-toolbar">
+                    <span class="help-text">Administra tus secuencias de pasos reutilizables para inyectar en tus casos de prueba.</span>
+                    <div class="snippets-toolbar-actions">
+                        <button type="button" class="btn-secondary-soft" onclick="restablecerSnippetsPredeterminados()" title="Restablecer snippets de fábrica">
+                            <svg class="ui-icon" aria-hidden="true"><use href="#icon-refresh"></use></svg>Restablecer
+                        </button>
+                        <button type="button" class="primary" onclick="abrirEditorSnippet(null)">
+                            <svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Nuevo Snippet
+                        </button>
+                    </div>
+                </div>
+                <div id="snippetsItemsContainer" class="snippets-items-container">
+                    <!-- Se llena dinámicamente con las tarjetas de snippets -->
+                </div>
+            </div>
+
+            <!-- VISTA: EDITOR DE SNIPPET (CREAR / MODIFICAR) -->
+            <div id="snippetsEditorView" style="display: none;">
+                <div class="snippet-editor-header">
+                    <h4 id="snippetEditorTitle">Crear Nuevo Snippet</h4>
+                    <span class="help-text">Define el nombre del snippet y los pasos que se inyectarán en los casos seleccionados.</span>
+                </div>
+
+                <input type="hidden" id="snippetEditId" value="">
+
+                <div class="snippet-field-group">
+                    <label for="snippetNombreInput"><strong>Nombre del Snippet</strong></label>
+                    <input type="text" id="snippetNombreInput" placeholder="Ej. Validación DTE Infile, Login Cajero, etc." autocomplete="off">
+                </div>
+
+                <div class="snippet-pasos-section">
+                    <div class="snippet-pasos-header">
+                        <label><strong>Pasos del Snippet</strong></label>
+                        <button type="button" class="btn-sm primary" onclick="agregarFilaPasoSnippet()">
+                            <svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Añadir Paso
+                        </button>
+                    </div>
+                    <div id="snippetPasosList" class="snippet-pasos-list">
+                        <!-- Filas de pasos con acción y resultado esperado -->
+                    </div>
+                </div>
+
+                <div class="snippet-editor-footer">
+                    <button type="button" class="ai-btn-ghost" onclick="cancelarEditorSnippet()">Cancelar</button>
+                    <button type="button" class="primary" onclick="guardarSnippetDesdeEditor()">
+                        <svg class="ui-icon" aria-hidden="true"><use href="#icon-session"></use></svg>Guardar Snippet
+                    </button>
+                </div>
             </div>
         </div>
     </div>

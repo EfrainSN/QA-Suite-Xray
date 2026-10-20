@@ -25,7 +25,7 @@ El resultado es un archivo listo para que una persona autorizada lo importe y co
 - **Pasos de ejecución:** cada paso contiene una acción y su resultado esperado. Se pueden añadir, borrar, reordenar y copiar entre casos.
 - **Reordenamiento:** arrastra los casos para cambiar su orden y arrastra sus pasos para ordenarlos dentro del caso.
 - **Clonado y borrado:** duplica casos individualmente o en grupo; las operaciones de borrado solicitan confirmación.
-- **Snippets:** agrega secuencias de pasos predefinidas y reutilizables para flujos comunes (como inicio de sesión, flujos transaccionales o validaciones del sistema).
+- **Repertorio de Snippets Personalizado:** crea, modifica y elimina tus propias secuencias de pasos reutilizables (como validaciones de DTE, pagos, login, etc.) e inyéctalas a los casos seleccionados con un solo clic. Incluye un gestor visual con persistencia local y opción de restablecer predeterminados.
 - **Buscar y reemplazar:** aplica un reemplazo a los casos seleccionados.
 
 ### Estados y operaciones masivas
