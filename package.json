@@ -1,6 +1,6 @@
 {
   "name": "qa-suite-xray",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Herramienta QA para preparación de casos de prueba manuales y exportación a Jira Xray",
   "main": "main.js",
   "author": "Efrain Cortez",
@@ -21,6 +21,7 @@
       "preload.js",
       "github-updates.js",
       "csv-importer.js",
+      "groq-service.js",
       "LICENSE",
       "package.json"
     ],

@@ -19,6 +19,7 @@ El resultado es un archivo listo para que una persona autorizada lo importe y co
 
 ### Creación y edición de casos
 
+- **Asistente IA (Groq Cloud):** genera casos de prueba completos (título, precondiciones, acciones y resultados esperados) a partir de historias de usuario o requerimientos mediante modelos de alto rendimiento como OpenAI GPT-OSS 120B o Qwen 3.8 27B usando una API key gratuita de Groq.
 - **Creación rápida en lote:** pega una lista de títulos. Se reconocen líneas separadas, numeraciones comunes y viñetas; las líneas continuadas se unen al título anterior.
 - **Creación individual:** añade un caso vacío y completa su título, precondiciones y pasos.
 - **Pasos de ejecución:** cada paso contiene una acción y su resultado esperado. Se pueden añadir, borrar, reordenar y copiar entre casos.

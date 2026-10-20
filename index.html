@@ -72,6 +72,13 @@
         <path d="M20 7v5h-5M4 17v-5h5" />
         <path d="M6.1 9a7 7 0 0 1 11.7-2L20 12M4 12l2.2 5a7 7 0 0 0 11.7-2" />
     </symbol>
+    <symbol id="icon-sparkles" viewBox="0 0 24 24">
+        <path d="m12 3 2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5zM19 3l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" />
+    </symbol>
+    <symbol id="icon-key" viewBox="0 0 24 24">
+        <circle cx="8" cy="15" r="4" />
+        <path d="m10.8 12.2 8.2-8.2h3v3l-2 2h-2l-2 2" />
+    </symbol>
 </svg>
 
 <div class="layout">
@@ -79,6 +86,12 @@
     <aside class="sidebar">
         <h2><span class="vista-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Herramientas Pro</h2>
         
+        <div class="tool-section ai-tool-section">
+            <h4><svg class="ui-icon section-icon" style="color: #6366f1;" aria-hidden="true"><use href="#icon-sparkles"></use></svg>Asistente IA (Groq)<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Genera casos de prueba automáticamente con DeepSeek R1 o Llama 3.3 usando la API gratuita de Groq." data-help="Genera casos de prueba automáticamente con DeepSeek R1 o Llama 3.3 usando la API gratuita de Groq."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
+            <p class="help-text">Genera casos y pasos completos desde historias o requerimientos con DeepSeek R1 o Llama 3.3.</p>
+            <button class="ai-button-main" onclick="abrirModalIA()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg>Generar Casos con IA</button>
+        </div>
+
         <div class="tool-section">
             <h4><svg class="ui-icon section-icon" aria-hidden="true"><use href="#icon-session"></use></svg>Sesión de Trabajo<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Guarda una copia local de tus casos o recupera una sesión exportada." data-help="Guarda una copia local de tus casos o recupera una sesión exportada."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h4>
             <button onclick="exportarWorkspace()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-export"></use></svg>Exportar Sesión (.qa)</button>
@@ -129,6 +142,7 @@
             <h3>Creación Rápida en Lote<span class="help-tip" tabindex="0" role="img" aria-label="Ayuda: Pega una lista de títulos y crea un caso de prueba por cada uno." data-help="Pega una lista de títulos y crea un caso de prueba por cada uno."><svg class="ui-icon" aria-hidden="true"><use href="#icon-help"></use></svg></span></h3>
             <textarea id="listaLote" rows="3" placeholder="Pega tu lista de títulos aquí..."></textarea>
             <button class="primary" onclick="generarEsqueletos()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-add"></use></svg>Generar Esqueletos Vacíos</button>
+            <button type="button" class="ai-secondary-btn" onclick="abrirModalIA()"><svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg>Generar con IA (Groq)</button>
             <button onclick="limpiarTodo()" class="btn-danger" style="float: right;">Borrar Todo</button>
         </div>
 
@@ -192,7 +206,116 @@
 <div class="toast" id="toastMsg">Acción completada</div>
 
 <script src="csv-importer.js"></script>
+<script src="groq-service.js"></script>
 <script src="app.js"></script>
+
+<!-- MODAL ASISTENTE IA (GROQ CLOUD) -->
+<div class="modal-overlay" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+    <div class="modal-box ai-modal-box">
+        <div class="ai-modal-header">
+            <h3 id="aiModalTitle">
+                <svg class="ui-icon" style="color: #6366f1;" aria-hidden="true"><use href="#icon-sparkles"></use></svg>
+                Asistente IA // Generador de Casos (Groq)
+            </h3>
+            <button type="button" class="ai-close-btn" onclick="cerrarModalIA()" title="Cerrar modal">&times;</button>
+        </div>
+
+        <div class="ai-modal-body">
+            <!-- Sección Clave de API -->
+            <div class="ai-config-card">
+                <div class="ai-config-header">
+                    <label for="aiApiKey">
+                        <svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg>
+                        <strong>Clave de API de Groq (Gratuita)</strong>
+                    </label>
+                    <a href="https://console.groq.com/keys" target="_blank" class="ai-link" rel="noreferrer">
+                        ¿No tienes clave? Obtén una gratis aquí &rarr;
+                    </a>
+                </div>
+                <div class="ai-key-input-group">
+                    <input type="password" id="aiApiKey" placeholder="gsk_..." autocomplete="off">
+                    <button type="button" class="ai-btn-ghost" onclick="toggleVisibilidadApiKey()" title="Mostrar/Ocultar clave" id="aiToggleKeyBtn">👁</button>
+                    <button type="button" class="ai-btn-secondary" onclick="probarClaveIA()" id="aiTestKeyBtn">Validar</button>
+                </div>
+                <div id="aiKeyStatus" class="ai-key-status"></div>
+            </div>
+
+            <!-- Parámetros del modelo y enfoque -->
+            <div class="ai-params-grid">
+                <div>
+                    <label for="aiModelSelect"><strong>Modelo IA</strong></label>
+                    <select id="aiModelSelect">
+                        <option value="openai/gpt-oss-120b" selected>OpenAI GPT-OSS 120B (Recomendado - Máxima capacidad)</option>
+                        <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Lógica y reglas de negocio)</option>
+                        <option value="openai/gpt-oss-20b">OpenAI GPT-OSS 20B (Ultra rápido)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="aiFocusSelect"><strong>Enfoque de Casos</strong></label>
+                    <select id="aiFocusSelect">
+                        <option value="balanced">Equilibrado (Happy path + Errores + Bordes)</option>
+                        <option value="positive">Flujo Feliz (Casos positivos de éxito)</option>
+                        <option value="negative">Casos Negativos (Validaciones y errores)</option>
+                        <option value="security_boundary">Límites y Seguridad (Boundary & Auth)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="aiCountSelect"><strong>Cantidad de Casos</strong></label>
+                    <select id="aiCountSelect">
+                        <option value="3">3 casos</option>
+                        <option value="5" selected>5 casos</option>
+                        <option value="8">8 casos</option>
+                        <option value="10">10 casos</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Requerimiento / Prompt -->
+            <div class="ai-prompt-group">
+                <label for="aiPromptText">
+                    <strong>Requerimiento o Historia de Usuario:</strong>
+                    <span class="help-text">Pega los criterios de aceptación, historia o flujo que deseas probar.</span>
+                </label>
+                <textarea id="aiPromptText" rows="5" placeholder="Ejemplo: Como usuario cliente, quiero poder pagar mi compra con tarjeta de crédito o débito. Criterios de aceptación:
+1. El sistema debe solicitar número de tarjeta, fecha de vencimiento y CVV.
+2. Si la tarjeta está vencida, debe mostrar mensaje de error.
+3. Si el saldo es insuficiente, notificar al usuario sin bloquear la orden.
+4. Si la transacción es exitosa, generar comprobante y enviar confirmación por correo."></textarea>
+            </div>
+
+            <!-- Estado de carga / Spinner -->
+            <div id="aiLoadingContainer" class="ai-loading-container" style="display: none;">
+                <div class="ai-spinner"></div>
+                <div class="ai-loading-text" id="aiLoadingText">Generando casos de prueba con Groq...</div>
+            </div>
+
+            <!-- Contenedor de previsualización de resultados -->
+            <div id="aiPreviewContainer" class="ai-preview-container" style="display: none;">
+                <div class="ai-preview-header">
+                    <h4 id="aiPreviewTitle">Casos Generados</h4>
+                    <span id="aiPreviewSubtitle" class="ai-preview-subtitle"></span>
+                </div>
+                <div id="aiPreviewList" class="ai-preview-list"></div>
+            </div>
+        </div>
+
+        <div class="ai-modal-footer">
+            <button type="button" class="ai-btn-ghost" onclick="cerrarModalIA()">Cerrar</button>
+            <div id="aiInitialActions">
+                <button type="button" class="primary ai-generate-btn" id="aiGenerateBtn" onclick="ejecutarGeneracionIA()">
+                    <svg class="ui-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg>
+                    Generar Casos con IA
+                </button>
+            </div>
+            <div id="aiResultActions" style="display: none;">
+                <button type="button" class="ai-btn-secondary" onclick="reintentarGeneracionIA()">Reintentar</button>
+                <button type="button" class="btn-danger" onclick="aplicarCasosIA('replace')">Reemplazar Todo</button>
+                <button type="button" class="primary" onclick="aplicarCasosIA('append')">Añadir a la Lista</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL PERSONALIZADO PARA ALERTAS Y CONFIRMACIONES -->
 <div class="modal-overlay" id="customModal">
     <div class="modal-box">

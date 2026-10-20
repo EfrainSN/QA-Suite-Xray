@@ -1014,3 +1014,298 @@ function mostrarTutorialJira() {
         return resultado;
     });
 }
+
+// --- ASISTENTE IA (GROQ CLOUD) ---
+let casosGeneradosIA = [];
+
+const DECOMMISSIONED_MODELS = [
+    'deepseek-r1-distill-llama-70b',
+    'qwen-2.5-32b',
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
+    'llama-3.1-70b-versatile',
+    'llama-3.2-11b-vision-preview',
+    'llama-3.2-1b-preview',
+    'llama-3.2-3b-preview',
+    'canopylabs/orpheus-v1-english',
+    'canopylabs/orpheus-arabic-saudi'
+];
+
+function actualizarModelosSelect(modelsList) {
+    if (!Array.isArray(modelsList) || modelsList.length === 0) return;
+
+    const select = document.getElementById('aiModelSelect');
+    if (!select) return;
+
+    const valorPrevio = select.value || localStorage.getItem('groq_model') || '';
+    select.innerHTML = '';
+
+    // Filtrar modelos no disponibles para generación de casos (audio, descontinuados, etc.)
+    const modelosValidos = modelsList.filter(id => !DECOMMISSIONED_MODELS.includes(id));
+    if (modelosValidos.length === 0) modelosValidos.push('openai/gpt-oss-120b');
+
+    modelosValidos.forEach(modelId => {
+        const opt = document.createElement('option');
+        opt.value = modelId;
+        let etiqueta = modelId;
+        if (modelId.includes('gpt-oss-120b')) etiqueta = 'OpenAI GPT-OSS 120B (Recomendado - Máxima capacidad)';
+        else if (modelId.includes('qwen')) etiqueta = 'Qwen 3.8 27B (Lógica y negocio)';
+        else if (modelId.includes('gpt-oss-20b')) etiqueta = 'OpenAI GPT-OSS 20B (Ultra rápido)';
+        else if (modelId.includes('allam')) etiqueta = `ALLAM (${modelId})`;
+        opt.textContent = etiqueta;
+        select.append(opt);
+    });
+
+    if (modelosValidos.includes(valorPrevio) && !DECOMMISSIONED_MODELS.includes(valorPrevio)) {
+        select.value = valorPrevio;
+    } else {
+        const preferido = modelosValidos.find(m => m.includes('gpt-oss-120b')) || modelosValidos.find(m => m.includes('qwen')) || modelosValidos[0];
+        select.value = preferido;
+        localStorage.setItem('groq_model', preferido);
+    }
+}
+
+function abrirModalIA() {
+    const modal = document.getElementById('aiModal');
+    if (!modal) return;
+
+    // Recuperar configuración guardada (migrando modelos deprecados)
+    const savedKey = localStorage.getItem('groq_api_key') || '';
+    let savedModel = localStorage.getItem('groq_model') || 'openai/gpt-oss-120b';
+    if (DECOMMISSIONED_MODELS.includes(savedModel)) {
+        savedModel = 'openai/gpt-oss-120b';
+        localStorage.setItem('groq_model', savedModel);
+    }
+    const savedFocus = localStorage.getItem('groq_focus') || 'balanced';
+
+    const apiKeyInput = document.getElementById('aiApiKey');
+    if (apiKeyInput) apiKeyInput.value = savedKey;
+
+    const modelSelect = document.getElementById('aiModelSelect');
+    if (modelSelect) modelSelect.value = savedModel;
+
+    const focusSelect = document.getElementById('aiFocusSelect');
+    if (focusSelect) focusSelect.value = savedFocus;
+
+    // Si la lista en lote tiene texto, prellenar como sugerencia si el prompt está vacío
+    const promptText = document.getElementById('aiPromptText');
+    const listaLote = document.getElementById('listaLote');
+    if (promptText && !promptText.value.trim() && listaLote && listaLote.value.trim()) {
+        promptText.value = `Generar casos de prueba para los siguientes escenarios:\n${listaLote.value.trim()}`;
+    }
+
+    // Resetear vistas
+    document.getElementById('aiLoadingContainer').style.display = 'none';
+    document.getElementById('aiPreviewContainer').style.display = 'none';
+    document.getElementById('aiInitialActions').style.display = 'flex';
+    document.getElementById('aiResultActions').style.display = 'none';
+
+    const statusEl = document.getElementById('aiKeyStatus');
+    if (statusEl) {
+        statusEl.className = 'ai-key-status';
+        statusEl.textContent = '';
+        if (savedKey) {
+            statusEl.className = 'ai-key-status success';
+            statusEl.textContent = 'Clave guardada localmente.';
+
+            // Sincronizar catálogo de modelos disponibles en segundo plano
+            const validateFn = typeof validateGroqApiKey === 'function'
+                ? validateGroqApiKey
+                : window.GroqService?.validateGroqApiKey;
+            if (validateFn) {
+                validateFn(savedKey).then(info => {
+                    if (info?.models) actualizarModelosSelect(info.models);
+                }).catch(() => {});
+            }
+        }
+    }
+
+    modal.classList.add('active');
+}
+
+function cerrarModalIA() {
+    const modal = document.getElementById('aiModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function toggleVisibilidadApiKey() {
+    const input = document.getElementById('aiApiKey');
+    const btn = document.getElementById('aiToggleKeyBtn');
+    if (!input || !btn) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🔒';
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁';
+    }
+}
+
+async function probarClaveIA() {
+    const key = (document.getElementById('aiApiKey')?.value || '').trim();
+    const statusEl = document.getElementById('aiKeyStatus');
+    const testBtn = document.getElementById('aiTestKeyBtn');
+
+    if (!key) {
+        statusEl.className = 'ai-key-status error';
+        statusEl.textContent = 'Ingresa una clave para validar.';
+        return;
+    }
+
+    testBtn.disabled = true;
+    testBtn.textContent = 'Validando...';
+    statusEl.className = 'ai-key-status';
+    statusEl.textContent = 'Conectando con Groq...';
+
+    try {
+        const validateFn = typeof validateGroqApiKey === 'function'
+            ? validateGroqApiKey
+            : window.GroqService?.validateGroqApiKey;
+
+        if (!validateFn) throw new Error('Servicio Groq no cargado.');
+
+        const info = await validateFn(key);
+        localStorage.setItem('groq_api_key', key);
+        statusEl.className = 'ai-key-status success';
+        statusEl.textContent = `✓ Conexión exitosa con Groq Cloud (${info.modelCount} modelos disponibles).`;
+
+        if (Array.isArray(info.models) && info.models.length > 0) {
+            actualizarModelosSelect(info.models);
+        }
+    } catch (err) {
+        statusEl.className = 'ai-key-status error';
+        statusEl.textContent = `✗ ${err.message}`;
+    } finally {
+        testBtn.disabled = false;
+        testBtn.textContent = 'Validar';
+    }
+}
+
+async function ejecutarGeneracionIA() {
+    const apiKey = (document.getElementById('aiApiKey')?.value || '').trim();
+    let model = document.getElementById('aiModelSelect')?.value || 'openai/gpt-oss-120b';
+    if (DECOMMISSIONED_MODELS.includes(model)) {
+        model = 'openai/gpt-oss-120b';
+    }
+    const focus = document.getElementById('aiFocusSelect')?.value || 'balanced';
+    const count = parseInt(document.getElementById('aiCountSelect')?.value || '5', 10);
+    const userStory = (document.getElementById('aiPromptText')?.value || '').trim();
+    const ticket = (document.getElementById('globalTicket')?.value || '').trim();
+
+    if (!apiKey) {
+        return await alertUI('Ingresa tu clave gratuita de API de Groq para continuar. Puedes obtener una en console.groq.com.');
+    }
+    if (!userStory) {
+        return await alertUI('Por favor ingresa la descripción o historia de usuario del requerimiento.');
+    }
+
+    // Guardar preferencias en localStorage
+    localStorage.setItem('groq_api_key', apiKey);
+    localStorage.setItem('groq_model', model);
+    localStorage.setItem('groq_focus', focus);
+
+    const generateBtn = document.getElementById('aiGenerateBtn');
+    const loadingContainer = document.getElementById('aiLoadingContainer');
+    const loadingText = document.getElementById('aiLoadingText');
+    const previewContainer = document.getElementById('aiPreviewContainer');
+    const previewList = document.getElementById('aiPreviewList');
+    const previewSubtitle = document.getElementById('aiPreviewSubtitle');
+    const initialActions = document.getElementById('aiInitialActions');
+    const resultActions = document.getElementById('aiResultActions');
+
+    generateBtn.disabled = true;
+    loadingContainer.style.display = 'flex';
+    previewContainer.style.display = 'none';
+
+    let nombreModelo = model;
+    if (model.includes('gpt-oss-120b')) nombreModelo = 'OpenAI GPT-OSS 120B';
+    else if (model.includes('gpt-oss-20b')) nombreModelo = 'OpenAI GPT-OSS 20B';
+    else if (model.includes('qwen')) nombreModelo = 'Qwen 3.8 27B';
+    else if (model.includes('allam')) nombreModelo = 'ALLAM 27B';
+
+    loadingText.textContent = `Analizando requerimiento y diseñando casos con ${nombreModelo} en Groq...`;
+
+    try {
+        const generateFn = typeof generateTestCasesWithGroq === 'function'
+            ? generateTestCasesWithGroq
+            : window.GroqService?.generateTestCasesWithGroq;
+
+        if (!generateFn) {
+            throw new Error('El módulo groq-service.js no se encuentra disponible.');
+        }
+
+        const resultado = await generateFn({
+            apiKey,
+            model,
+            userStory,
+            count,
+            focus,
+            ticket
+        });
+
+        casosGeneradosIA = resultado.casos;
+
+        // Renderizar previsualización
+        previewList.innerHTML = '';
+        casosGeneradosIA.forEach((caso, idx) => {
+            const item = document.createElement('div');
+            item.className = 'ai-preview-item';
+
+            const titleRow = document.createElement('div');
+            titleRow.className = 'ai-preview-item-title';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = `${idx + 1}. ${caso.titulo}`;
+
+            const badge = document.createElement('span');
+            badge.className = 'ai-preview-item-steps-badge';
+            badge.textContent = `${caso.pasos.length} ${caso.pasos.length === 1 ? 'paso' : 'pasos'}`;
+
+            titleRow.append(titleSpan, badge);
+            item.append(titleRow);
+
+            if (caso.precondiciones) {
+                const desc = document.createElement('div');
+                desc.className = 'ai-preview-item-desc';
+                desc.textContent = `Precondiciones: ${caso.precondiciones.slice(0, 120)}${caso.precondiciones.length > 120 ? '...' : ''}`;
+                item.append(desc);
+            }
+
+            previewList.append(item);
+        });
+
+        previewSubtitle.textContent = `${casosGeneradosIA.length} casos listos (${resultado.totalPasos} pasos) generados con ${nombreModelo}`;
+        previewContainer.style.display = 'block';
+        initialActions.style.display = 'none';
+        resultActions.style.display = 'flex';
+    } catch (err) {
+        console.error('Error generando casos con IA:', err);
+        await alertUI(`Error al generar casos con Groq: ${err.message}`);
+    } finally {
+        generateBtn.disabled = false;
+        loadingContainer.style.display = 'none';
+    }
+}
+
+function reintentarGeneracionIA() {
+    casosGeneradosIA = [];
+    document.getElementById('aiPreviewContainer').style.display = 'none';
+    document.getElementById('aiResultActions').style.display = 'none';
+    document.getElementById('aiInitialActions').style.display = 'flex';
+}
+
+function aplicarCasosIA(modo) {
+    if (!casosGeneradosIA || casosGeneradosIA.length === 0) return;
+
+    if (modo === 'replace') {
+        casosGlobales = casosGeneradosIA;
+    } else {
+        casosGlobales = [...casosGlobales, ...casosGeneradosIA];
+    }
+
+    guardarLocal(true);
+    renderizarCasos();
+    cerrarModalIA();
+    mostrarToast(`${casosGeneradosIA.length} casos generados con IA incorporados.`);
+    casosGeneradosIA = [];
+}
