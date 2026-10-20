@@ -65,7 +65,7 @@ El almacenamiento local del navegador o de Electron no equivale a una copia de s
 
 El archivo se descarga con el nombre `XRAY_<ticket>.csv`. Se codifica como UTF-8 con BOM, lo que ayuda a conservar caracteres acentuados en aplicaciones compatibles con CSV. Los valores se entrecomillan y las comillas que forman parte de un valor se duplican.
 
-El archivo contiene estas diez columnas:
+El archivo contiene estas once columnas:
 
 | Columna | Contenido y uso |
 | --- | --- |
@@ -76,9 +76,10 @@ El archivo contiene estas diez columnas:
 | `Acción` | Acción de un paso. Cada paso genera una fila. |
 | `Datos de Prueba` | Se deja vacío para completar o mapear según el proceso del equipo. |
 | `Resultado Esperado` | Resultado esperado para el paso correspondiente. |
-| `Componentes` | Identificador del componente asignado por defecto para la exportación. |
+| `Componentes` | Identificador del componente Jira (configurable; se deja vacío por defecto para evitar auto-asignación). |
 | `Etiquetas` | Combina el ticket Jira y las etiquetas globales configuradas. |
 | `HU Relacionada` | Contiene el ticket Jira configurado para vincular el caso con su historia durante la importación. |
+| `Responsable` | Se genera vacío por defecto para que los casos queden **Sin asignar** al importarse en Jira. |
 
 Un caso con varios pasos produce varias filas con el mismo `TCID`, resumen y descripción, una por cada acción y resultado esperado. La vista previa presenta todas las filas de datos; no se limita a una muestra inicial.
 
@@ -92,7 +93,7 @@ La vista previa informa la cantidad de casos, filas de datos, errores y adverten
 
 La validación se realiza localmente antes de generar la descarga. El contenido visible en la tabla es el contenido que se prepara para el CSV.
 
-### Mapeo sugerido en Jira/Xray
+### Mapeo sugerido en Jira/Xray (Para casos Sin Asignar)
 
 En el paso de mapeo del importador, la guía integrada propone:
 
@@ -106,7 +107,11 @@ En el paso de mapeo del importador, la guía integrada propone:
 | `Resultado Esperado` | Resultados Esperados |
 | `HU Relacionada` | Enlace `tests` o Enlace externo |
 
-La guía recomienda no mapear `Datos de Prueba`, `Componentes` ni `Etiquetas`. Los nombres de los campos disponibles pueden depender de la configuración de Jira/Xray; verifica el mapeo antes de confirmar la importación.
+> [!TIP]
+> **Para evitar que los casos se auto-asignen al Product Owner o Líder de Componente:**
+> 1. **No mapees `Componentes`** (o déjalo vacío en la suite). Si se mapea un componente que tiene un líder definido en Jira, Jira le auto-asignará todas las incidencias al Product Owner.
+> 2. **No mapees `Datos de Prueba`, `Etiquetas` ni `Responsable`** (a menos que mapees `Responsable` a `Assignee` dejándolo en blanco en el paso de mapeo de valores).
+> 3. En Jira, asegúrate de que el proyecto tenga configurado el campo **Asignado por defecto** como **Sin asignar (Unassigned)**.
 
 ## Carpetas de Xray y alcance de Jira
 

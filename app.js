@@ -58,6 +58,8 @@ function ejecutarGuardado() {
         if (ticketEl) localStorage.setItem('qa_ticket', ticketEl.value);
         const tagsEl = document.getElementById('globalEtiquetas');
         if (tagsEl) localStorage.setItem('qa_tags', tagsEl.value);
+        const compEl = document.getElementById('globalComponente');
+        if (compEl) localStorage.setItem('qa_componente', compEl.value);
         mostrarEstado("Guardado hace un momento.");
     } catch (error) {
         console.error('Error al guardar en almacenamiento local:', error);
@@ -82,6 +84,11 @@ function cargarLocal() {
     
     const tgs = localStorage.getItem('qa_tags');
     if (tgs) document.getElementById('globalEtiquetas').value = tgs;
+
+    const cmp = localStorage.getItem('qa_componente');
+    if (cmp !== null && document.getElementById('globalComponente')) {
+        document.getElementById('globalComponente').value = cmp;
+    }
 }
 
 // --- SISTEMA DE MODALES ---
@@ -306,11 +313,13 @@ async function exportarWorkspace() {
     guardarLocal(true);
     if (casosGlobales.length === 0) return await alertUI("El espacio de trabajo está vacío. No hay nada que exportar.");
     
+    const compEl = document.getElementById('globalComponente');
     const workspace = {
         version: "1.0",
         fecha: new Date().toISOString(),
         ticket: document.getElementById('globalTicket').value,
         tags: document.getElementById('globalEtiquetas').value,
+        componente: compEl ? compEl.value : "",
         casos: casosGlobales
     };
 
@@ -334,6 +343,9 @@ async function importarWorkspace(event) {
                 casosGlobales = workspace.casos;
                 document.getElementById('globalTicket').value = workspace.ticket || "";
                 document.getElementById('globalEtiquetas').value = workspace.tags || "";
+                if (document.getElementById('globalComponente')) {
+                    document.getElementById('globalComponente').value = workspace.componente || "";
+                }
                 guardarLocal();
                 renderizarCasos();
                 mostrarToast("Sesión importada con éxito.");
@@ -360,7 +372,7 @@ async function importarCSV(event) {
             }
 
             const resultado = parseFn(contenido);
-            const { casos, ticket, tags, totalPasos } = resultado;
+            const { casos, ticket, tags, componente, totalPasos } = resultado;
 
             if (!casos || casos.length === 0) {
                 return await alertUI("No se encontraron casos de prueba válidos en el archivo CSV.");
@@ -432,11 +444,13 @@ async function importarCSV(event) {
                     casosGlobales = casos;
                     if (ticket) document.getElementById('globalTicket').value = ticket;
                     if (tags) document.getElementById('globalEtiquetas').value = tags;
+                    if (componente && document.getElementById('globalComponente')) document.getElementById('globalComponente').value = componente;
                 }
             } else {
                 casosGlobales = casos;
                 if (ticket) document.getElementById('globalTicket').value = ticket;
                 if (tags) document.getElementById('globalEtiquetas').value = tags;
+                if (componente && document.getElementById('globalComponente')) document.getElementById('globalComponente').value = componente;
             }
 
             guardarLocal(true);
@@ -721,7 +735,8 @@ async function descargarCSV() {
     
     const tkt = document.getElementById('globalTicket').value || "TICKET";
     const customTags = document.getElementById('globalEtiquetas').value || "";
-    const columnasCSV = ["TCID", "Resumen", "Descripción", "Tipo de Test", "Acción", "Datos de Prueba", "Resultado Esperado", "Componentes", "Etiquetas", "HU Relacionada"];
+    const customComponente = document.getElementById('globalComponente') ? document.getElementById('globalComponente').value.trim() : "";
+    const columnasCSV = ["TCID", "Resumen", "Descripción", "Tipo de Test", "Acción", "Datos de Prueba", "Resultado Esperado", "Componentes", "Etiquetas", "HU Relacionada", "Responsable"];
     let csvContent = columnasCSV.map(escaparCSV).join(",") + "\n";
     const filasPreview = [];
     const erroresValidacion = [];
@@ -761,13 +776,14 @@ async function descargarCSV() {
                 accion,
                 datosPrueba: "",
                 resultado,
-                componentes: "SV-FEL",
-                etiquetas: `${tkt}, ${customTags}`,
-                enlaceHU: tkt
+                componentes: customComponente,
+                etiquetas: [tkt, customTags].filter(Boolean).join(", "),
+                enlaceHU: tkt,
+                responsable: ""
             };
             csvContent += [
                 fila.tcid, fila.resumen, fila.descripcion, fila.tipoTest, fila.accion,
-                fila.datosPrueba, fila.resultado, fila.componentes, fila.etiquetas, fila.enlaceHU
+                fila.datosPrueba, fila.resultado, fila.componentes, fila.etiquetas, fila.enlaceHU, fila.responsable
             ].map(escaparCSV).join(",") + "\n";
             filasPreview.push(fila);
         });
@@ -779,12 +795,13 @@ async function descargarCSV() {
         casosCount: casosGlobales.length,
         columnasCSV,
         filasPreview,
+        customComponente,
         erroresValidacion,
         advertenciasValidacion
     });
 }
 
-function mostrarVistaPreviaCSV({ csvContent, nombreArchivo, casosCount, columnasCSV, filasPreview, erroresValidacion, advertenciasValidacion }) {
+function mostrarVistaPreviaCSV({ csvContent, nombreArchivo, casosCount, columnasCSV, filasPreview, customComponente, erroresValidacion, advertenciasValidacion }) {
     const modal = document.getElementById('customModal');
     const modalBox = modal.querySelector('.modal-box');
     const msgEl = document.getElementById('modalMessage');
@@ -805,6 +822,11 @@ function mostrarVistaPreviaCSV({ csvContent, nombreArchivo, casosCount, columnas
     explicacion.className = 'csv-info-callout';
     explicacion.innerHTML = `<strong>💡 ¿Por qué hay ${filasPreview.length} filas para ${casosCount} casos?</strong><br>En el formato oficial de <strong>Jira Xray</strong>, cada fila del archivo CSV representa <strong>1 paso de prueba</strong>. Los casos con varios pasos repiten su <code>TCID</code> y <code>Resumen</code> para que Jira los agrupe dentro del <strong>mismo ticket de prueba</strong> sin duplicar incidencias.`;
     contenido.append(explicacion);
+
+    const notaAsignacion = document.createElement('div');
+    notaAsignacion.className = 'csv-info-callout callout-unassigned';
+    notaAsignacion.innerHTML = `<strong>👤 Casos Sin Asignar:</strong> La columna <code>Responsable</code> se exporta vacía y <code>Componentes</code> ${customComponente ? `está configurado como "<code>${customComponente}</code>"` : 'se encuentra vacío'}. Al importar en Jira, <strong>no mapees Componentes</strong> para evitar que se auto-asignen al Product Owner o líder del componente.`;
+    contenido.append(notaAsignacion);
 
     const listaValidacion = document.createElement('ul');
     listaValidacion.className = 'csv-validation-list';
@@ -856,7 +878,7 @@ function mostrarVistaPreviaCSV({ csvContent, nombreArchivo, casosCount, columnas
         tcidAnterior = fila.tcid;
         [
             fila.tcid, fila.resumen, fila.descripcion, fila.tipoTest, fila.accion,
-            fila.datosPrueba, fila.resultado, fila.componentes, fila.etiquetas, fila.enlaceHU
+            fila.datosPrueba, fila.resultado, fila.componentes, fila.etiquetas, fila.enlaceHU, fila.responsable
         ].forEach(valor => {
             const celda = document.createElement('td');
             celda.textContent = valor;
@@ -933,6 +955,15 @@ function mostrarTutorialJira() {
     });
     contenido.append(lista);
 
+    const calloutAsignacion = document.createElement('div');
+    calloutAsignacion.className = 'csv-info-callout callout-unassigned';
+    calloutAsignacion.style.marginBottom = '12px';
+    calloutAsignacion.innerHTML = `<strong>👤 Para que los casos queden SIN ASIGNAR:</strong><br>
+1. <strong>No mapees la columna "Componentes"</strong>: Si la mapeas, Jira aplicará la regla del componente y asignará los casos al Product Owner o líder del componente.<br>
+2. <strong>No mapees "Responsable"</strong> (o mapea a Assignee dejándolo en blanco).<br>
+3. <strong>Configuración del Proyecto en Jira</strong>: Asegúrate de que el <em>Asignado por defecto</em> del proyecto esté configurado como <strong>Sin asignar (Unassigned)</strong>.`;
+    contenido.append(calloutAsignacion);
+
     const tabla = document.createElement('table');
     const encabezado = document.createElement('thead');
     const filaEncabezado = document.createElement('tr');
@@ -968,9 +999,9 @@ function mostrarTutorialJira() {
     const filaOmitir = document.createElement('tr');
     filaOmitir.className = 'tutorial-skip-row';
     const campoOmitir = document.createElement('td');
-    campoOmitir.textContent = 'Datos de Prueba, Componentes, Etiquetas';
+    campoOmitir.textContent = 'Datos de Prueba, Componentes, Etiquetas, Responsable';
     const instruccionOmitir = document.createElement('td');
-    instruccionOmitir.textContent = 'No mapear estos campos';
+    instruccionOmitir.innerHTML = '<strong>No mapear</strong> (evita que Componentes auto-asigne al PO)';
     filaOmitir.append(campoOmitir, instruccionOmitir);
     cuerpo.append(filaOmitir);
     tabla.append(cuerpo);

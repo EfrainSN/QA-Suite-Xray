@@ -44,6 +44,7 @@ test('parseXrayCsv reconstructs multi-step test cases grouped by TCID', () => {
     assert.equal(result.totalPasos, 3);
     assert.equal(result.ticket, 'OMP-18704');
     assert.equal(result.tags, 'OMP-18704, Regresion');
+    assert.equal(result.componente, 'SV-FEL');
 
     // Caso 1
     const caso1 = result.casos[0];
@@ -65,6 +66,6 @@ test('parseXrayCsv reconstructs multi-step test cases grouped by TCID', () => {
 });
 
 test('parseXrayCsv handles empty or invalid inputs gracefully', () => {
-    assert.deepEqual(parseXrayCsv(''), { casos: [], ticket: '', tags: '', totalPasos: 0 });
-    assert.deepEqual(parseXrayCsv('"TCID","Resumen"'), { casos: [], ticket: '', tags: '', totalPasos: 0 });
+    assert.deepEqual(parseXrayCsv(''), { casos: [], ticket: '', tags: '', componente: '', totalPasos: 0 });
+    assert.deepEqual(parseXrayCsv('"TCID","Resumen"'), { casos: [], ticket: '', tags: '', componente: '', totalPasos: 0 });
 });

@@ -706,7 +706,7 @@ input[type="checkbox"]:focus-visible {
 
 .global-config-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0 15px;
 }
 
@@ -747,9 +747,10 @@ input[type="checkbox"]:focus-visible {
     font-size: 11px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
     .global-config-grid {
         grid-template-columns: 1fr;
+        gap: 8px 0;
     }
 }
 
@@ -841,6 +842,15 @@ input[type="checkbox"]:focus-visible {
     background: rgba(18, 77, 120, 0.12);
     font-family: monospace;
     font-size: 11px;
+}
+.csv-info-callout.callout-unassigned {
+    border-color: #f0c36d;
+    background: linear-gradient(180deg, #fffdf5 0%, #fff8e1 100%);
+    color: #6d4c0c;
+}
+.csv-info-callout.callout-unassigned strong { color: #513600; }
+.csv-info-callout.callout-unassigned code {
+    background: rgba(109, 76, 12, 0.12);
 }
 .csv-preview-note { font-weight: 600; }
 

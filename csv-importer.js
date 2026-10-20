@@ -104,7 +104,7 @@ function extractPreconditions(descripcion, titulo) {
 function parseXrayCsv(csvText) {
     const rawRows = parseCsvRows(csvText);
     if (rawRows.length === 0) {
-        return { casos: [], ticket: '', tags: '', totalPasos: 0 };
+        return { casos: [], ticket: '', tags: '', componente: '', totalPasos: 0 };
     }
 
     const headerRow = rawRows[0];
@@ -132,6 +132,7 @@ function parseXrayCsv(csvText) {
     const idxDescripcion = findIndex(['descripcion', 'description']);
     const idxAccion = findIndex(['accion', 'action', 'paso']);
     const idxResultado = findIndex(['resultado esperado', 'expected result', 'resultado']);
+    const idxComponente = findIndex(['componentes', 'componente', 'components', 'component']);
     const idxEtiquetas = findIndex(['etiquetas', 'labels', 'tags']);
     const idxHU = findIndex(['hu relacionada', 'hu', 'ticket', 'issue key', 'enlace tests']);
 
@@ -139,6 +140,7 @@ function parseXrayCsv(csvText) {
     const grupos = new Map();
     let detectedTicket = '';
     let detectedTags = '';
+    let detectedComponent = '';
 
     dataRows.forEach((row, rowIndex) => {
         const tcidRaw = idxTcid >= 0 ? (row[idxTcid] || '').trim() : '';
@@ -146,11 +148,13 @@ function parseXrayCsv(csvText) {
         const descRaw = idxDescripcion >= 0 ? (row[idxDescripcion] || '').trim() : '';
         const accionRaw = idxAccion >= 0 ? (row[idxAccion] || '').trim() : '';
         const resultadoRaw = idxResultado >= 0 ? (row[idxResultado] || '').trim() : '';
+        const componenteRaw = idxComponente >= 0 ? (row[idxComponente] || '').trim() : '';
         const etiquetasRaw = idxEtiquetas >= 0 ? (row[idxEtiquetas] || '').trim() : '';
         const huRaw = idxHU >= 0 ? (row[idxHU] || '').trim() : '';
 
         if (!detectedTicket && huRaw) detectedTicket = huRaw;
         if (!detectedTags && etiquetasRaw) detectedTags = etiquetasRaw;
+        if (!detectedComponent && componenteRaw) detectedComponent = componenteRaw;
 
         const clave = tcidRaw || resumenRaw || `CASO-${rowIndex + 1}`;
 
@@ -202,6 +206,7 @@ function parseXrayCsv(csvText) {
         casos,
         ticket: detectedTicket,
         tags: detectedTags,
+        componente: detectedComponent,
         totalPasos
     };
 }
